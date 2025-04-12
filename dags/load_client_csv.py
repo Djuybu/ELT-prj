@@ -24,7 +24,7 @@ def load_client_csv(file_path: str) -> DataFrame:
 def check_data(df: DataFrame) -> bool:
     # get the row with the latest "first_issue_date"
     latest_date_row = df.orderBy(df["first_issue_date"].desc()).first()
-    with open("/home/djuybu/Desktop/BigData_BigProject/src/data_loaders/transactions/csv/control.json") as f:
+    with open("../files/control.json") as f:
         last_updated = json.load(f)["last_updated"]["clients"]
         last_updated = datetime.strptime(last_updated, '%Y-%m-%dT%H:%M:%SZ')
     # check if the latest date is greater than the last updated date
@@ -41,7 +41,7 @@ def load_to_delta(df: DataFrame) -> None:
 
 if __name__ == "__main__":
     # Example usage
-    file_path = "/home/djuybu/Desktop/BigData_BigProject/files/transactions/clients.csv"
+    file_path = "../files/clients.csv"
     df = load_client_csv(file_path)
     if check_data(df):
         load_to_delta(df)
