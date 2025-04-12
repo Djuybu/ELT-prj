@@ -9,7 +9,7 @@ spark = SparkSession.builder \
     .appName("DeltaLakeExample") \
     .master("local[*]") \
     .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config('spark.jars', '/opt/spark/jar/delta-spark_2.13-3.3.0.jar') \
+    .config('spark.jars', '/opt/spark/jar/delta-spark_2.12-3.3.1.jar') \
     .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
     .getOrCreate()
 
