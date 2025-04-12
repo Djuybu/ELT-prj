@@ -1,3 +1,4 @@
+
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -49,8 +50,8 @@ x-airflow-common:
   # In order to add custom dependencies or upgrade provider packages you can use your extended image.
   # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
-  image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.10.4}
-  # build: .
+  # image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.10.4}
+  build: .
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
@@ -66,10 +67,12 @@ x-airflow-common:
     # See https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/check-health.html#scheduler-health-check-server
     # yamllint enable rule:line-length
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
+    AIRFLOW__LOGGING__BASE_LOG_FOLDER: /opt/airflow/logs
+    AIRFLOW__WEBSERVER__BASE_URL: http://localhost:8686
     # WARNING: Use _PIP_ADDITIONAL_REQUIREMENTS option ONLY for a quick checks
     # for other purpose (development, test and especially production usage) build/extend Airflow image.
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
-    # The following line can be used to set a custom config file, stored in the local config folder
+        # The following line can be used to set a custom config file, stored in the local config folder
     # If you want to use it, outcomment it and replace airflow.cfg with the name of your config file
     # AIRFLOW_CONFIG: '/opt/airflow/config/air
   volumes:
@@ -77,6 +80,8 @@ x-airflow-common:
     - /app/airflow/docker/ELT-prj/logs:/opt/airflow/logs
     - /app/airflow/docker/ELT-prj/config:/opt/airflow/config
     - /app/airflow/docker/ELT-prj/plugins:/opt/airflow/plugins
+    - /app/airflow/docker/ELT-prj/files:/opt/airflow/files
+    - /opt/spark:/opt/spark
 
 
   user: "${AIRFLOW_UID:-50000}:0"
@@ -133,6 +138,8 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+    networks:
+     - airflow-network
 
   airflow-scheduler:
     <<: *airflow-common
@@ -148,6 +155,8 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+    networks:
+     - airflow-network
 
   airflow-worker:
     <<: *airflow-common
@@ -171,6 +180,8 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+    networks:
+     - airflow-network
 
   airflow-triggerer:
     <<: *airflow-common
@@ -186,6 +197,8 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+    networks:
+     - airflow-network
 
   airflow-init:
     <<: *airflow-common
@@ -288,3 +301,7 @@ services:
 
 volumes:
   postgres-db-volume:
+
+networks:
+  airflow-network:
+    driver: bridge

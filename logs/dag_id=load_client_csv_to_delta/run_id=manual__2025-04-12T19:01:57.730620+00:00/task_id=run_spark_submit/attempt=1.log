@@ -1,0 +1,181 @@
+[2025-04-12T19:02:04.202+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2025-04-12T19:02:04.259+0000] {taskinstance.py:2613} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: load_client_csv_to_delta.run_spark_submit manual__2025-04-12T19:01:57.730620+00:00 [queued]>
+[2025-04-12T19:02:04.285+0000] {taskinstance.py:2613} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: load_client_csv_to_delta.run_spark_submit manual__2025-04-12T19:01:57.730620+00:00 [queued]>
+[2025-04-12T19:02:04.286+0000] {taskinstance.py:2866} INFO - Starting attempt 1 of 1
+[2025-04-12T19:02:04.344+0000] {taskinstance.py:2889} INFO - Executing <Task(BashOperator): run_spark_submit> on 2025-04-12 19:01:57.730620+00:00
+[2025-04-12T19:02:04.390+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:70: DeprecationWarning: This process (pid=118) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2025-04-12T19:02:04.405+0000] {standard_task_runner.py:72} INFO - Started process 119 to run task
+[2025-04-12T19:02:04.411+0000] {standard_task_runner.py:104} INFO - Running: ['***', 'tasks', 'run', 'load_client_csv_to_delta', 'run_spark_submit', 'manual__2025-04-12T19:01:57.730620+00:00', '--job-id', '3', '--raw', '--subdir', 'DAGS_FOLDER/load_client_dags.py', '--cfg-path', '/tmp/tmpba4rzlux']
+[2025-04-12T19:02:04.423+0000] {standard_task_runner.py:105} INFO - Job 3: Subtask run_spark_submit
+[2025-04-12T19:02:04.858+0000] {task_command.py:467} INFO - Running <TaskInstance: load_client_csv_to_delta.run_spark_submit manual__2025-04-12T19:01:57.730620+00:00 [running]> on host a1eb074b5560
+[2025-04-12T19:02:05.314+0000] {taskinstance.py:3132} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='load_client_csv_to_delta' AIRFLOW_CTX_TASK_ID='run_spark_submit' AIRFLOW_CTX_EXECUTION_DATE='2025-04-12T19:01:57.730620+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2025-04-12T19:01:57.730620+00:00'
+[2025-04-12T19:02:05.315+0000] {taskinstance.py:731} INFO - ::endgroup::
+[2025-04-12T19:02:05.394+0000] {subprocess.py:78} INFO - Tmp dir root location: /tmp
+[2025-04-12T19:02:05.396+0000] {subprocess.py:88} INFO - Running command: ['/usr/bin/bash', '-c', '\n /opt/spark/bin/spark-submit   --master local[*]   --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension   --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog   --conf spark.jars=/opt/spark/jar/delta-spark_2.13-3.3.0.jar   --py-files /home/djuybu/Desktop/BigData_BigProject/src/data_loaders/transactions/csv/load_client_csv.py']
+[2025-04-12T19:02:05.422+0000] {subprocess.py:99} INFO - Output:
+[2025-04-12T19:02:05.467+0000] {subprocess.py:106} INFO - /opt/spark/bin/load-spark-env.sh: line 68: ps: command not found
+[2025-04-12T19:02:06.519+0000] {subprocess.py:106} INFO - Error: Missing application resource.
+[2025-04-12T19:02:06.524+0000] {subprocess.py:106} INFO - 
+[2025-04-12T19:02:09.252+0000] {subprocess.py:106} INFO - Usage: spark-submit [options] <app jar | python file | R file> [app arguments]
+[2025-04-12T19:02:09.253+0000] {subprocess.py:106} INFO - Usage: spark-submit --kill [submission ID] --master [spark://...]
+[2025-04-12T19:02:09.254+0000] {subprocess.py:106} INFO - Usage: spark-submit --status [submission ID] --master [spark://...]
+[2025-04-12T19:02:09.256+0000] {subprocess.py:106} INFO - Usage: spark-submit run-example [options] example-class [example args]
+[2025-04-12T19:02:09.313+0000] {subprocess.py:106} INFO - 
+[2025-04-12T19:02:09.316+0000] {subprocess.py:106} INFO - Options:
+[2025-04-12T19:02:09.317+0000] {subprocess.py:106} INFO -   --master MASTER_URL         spark://host:port, mesos://host:port, yarn,
+[2025-04-12T19:02:09.318+0000] {subprocess.py:106} INFO -                               k8s://https://host:port, or local (Default: local[*]).
+[2025-04-12T19:02:09.321+0000] {subprocess.py:106} INFO -   --deploy-mode DEPLOY_MODE   Whether to launch the driver program locally ("client") or
+[2025-04-12T19:02:09.322+0000] {subprocess.py:106} INFO -                               on one of the worker machines inside the cluster ("cluster")
+[2025-04-12T19:02:09.323+0000] {subprocess.py:106} INFO -                               (Default: client).
+[2025-04-12T19:02:09.324+0000] {subprocess.py:106} INFO -   --class CLASS_NAME          Your application's main class (for Java / Scala apps).
+[2025-04-12T19:02:09.326+0000] {subprocess.py:106} INFO -   --name NAME                 A name of your application.
+[2025-04-12T19:02:09.327+0000] {subprocess.py:106} INFO -   --jars JARS                 Comma-separated list of jars to include on the driver
+[2025-04-12T19:02:09.329+0000] {subprocess.py:106} INFO -                               and executor classpaths.
+[2025-04-12T19:02:09.330+0000] {subprocess.py:106} INFO -   --packages                  Comma-separated list of maven coordinates of jars to include
+[2025-04-12T19:02:09.331+0000] {subprocess.py:106} INFO -                               on the driver and executor classpaths. Will search the local
+[2025-04-12T19:02:09.334+0000] {subprocess.py:106} INFO -                               maven repo, then maven central and any additional remote
+[2025-04-12T19:02:09.334+0000] {subprocess.py:106} INFO -                               repositories given by --repositories. The format for the
+[2025-04-12T19:02:09.335+0000] {subprocess.py:106} INFO -                               coordinates should be groupId:artifactId:version.
+[2025-04-12T19:02:09.335+0000] {subprocess.py:106} INFO -   --exclude-packages          Comma-separated list of groupId:artifactId, to exclude while
+[2025-04-12T19:02:09.336+0000] {subprocess.py:106} INFO -                               resolving the dependencies provided in --packages to avoid
+[2025-04-12T19:02:09.337+0000] {subprocess.py:106} INFO -                               dependency conflicts.
+[2025-04-12T19:02:09.338+0000] {subprocess.py:106} INFO -   --repositories              Comma-separated list of additional remote repositories to
+[2025-04-12T19:02:09.338+0000] {subprocess.py:106} INFO -                               search for the maven coordinates given with --packages.
+[2025-04-12T19:02:09.339+0000] {subprocess.py:106} INFO -   --py-files PY_FILES         Comma-separated list of .zip, .egg, or .py files to place
+[2025-04-12T19:02:09.339+0000] {subprocess.py:106} INFO -                               on the PYTHONPATH for Python apps.
+[2025-04-12T19:02:09.340+0000] {subprocess.py:106} INFO -   --files FILES               Comma-separated list of files to be placed in the working
+[2025-04-12T19:02:09.340+0000] {subprocess.py:106} INFO -                               directory of each executor. File paths of these files
+[2025-04-12T19:02:09.341+0000] {subprocess.py:106} INFO -                               in executors can be accessed via SparkFiles.get(fileName).
+[2025-04-12T19:02:09.341+0000] {subprocess.py:106} INFO -   --archives ARCHIVES         Comma-separated list of archives to be extracted into the
+[2025-04-12T19:02:09.342+0000] {subprocess.py:106} INFO -                               working directory of each executor.
+[2025-04-12T19:02:09.342+0000] {subprocess.py:106} INFO - 
+[2025-04-12T19:02:09.343+0000] {subprocess.py:106} INFO -   --conf, -c PROP=VALUE       Arbitrary Spark configuration property.
+[2025-04-12T19:02:09.343+0000] {subprocess.py:106} INFO -   --properties-file FILE      Path to a file from which to load extra properties. If not
+[2025-04-12T19:02:09.343+0000] {subprocess.py:106} INFO -                               specified, this will look for conf/spark-defaults.conf.
+[2025-04-12T19:02:09.344+0000] {subprocess.py:106} INFO - 
+[2025-04-12T19:02:09.344+0000] {subprocess.py:106} INFO -   --driver-memory MEM         Memory for driver (e.g. 1000M, 2G) (Default: 1024M).
+[2025-04-12T19:02:09.344+0000] {subprocess.py:106} INFO -   --driver-java-options       Extra Java options to pass to the driver.
+[2025-04-12T19:02:09.345+0000] {subprocess.py:106} INFO -   --driver-library-path       Extra library path entries to pass to the driver.
+[2025-04-12T19:02:09.345+0000] {subprocess.py:106} INFO -   --driver-class-path         Extra class path entries to pass to the driver. Note that
+[2025-04-12T19:02:09.345+0000] {subprocess.py:106} INFO -                               jars added with --jars are automatically included in the
+[2025-04-12T19:02:09.346+0000] {subprocess.py:106} INFO -                               classpath.
+[2025-04-12T19:02:09.346+0000] {subprocess.py:106} INFO - 
+[2025-04-12T19:02:09.346+0000] {subprocess.py:106} INFO -   --executor-memory MEM       Memory per executor (e.g. 1000M, 2G) (Default: 1G).
+[2025-04-12T19:02:09.347+0000] {subprocess.py:106} INFO - 
+[2025-04-12T19:02:09.347+0000] {subprocess.py:106} INFO -   --proxy-user NAME           User to impersonate when submitting the application.
+[2025-04-12T19:02:09.347+0000] {subprocess.py:106} INFO -                               This argument does not work with --principal / --keytab.
+[2025-04-12T19:02:09.348+0000] {subprocess.py:106} INFO - 
+[2025-04-12T19:02:09.348+0000] {subprocess.py:106} INFO -   --help, -h                  Show this help message and exit.
+[2025-04-12T19:02:09.348+0000] {subprocess.py:106} INFO -   --verbose, -v               Print additional debug output.
+[2025-04-12T19:02:09.349+0000] {subprocess.py:106} INFO -   --version,                  Print the version of current Spark.
+[2025-04-12T19:02:09.349+0000] {subprocess.py:106} INFO - 
+[2025-04-12T19:02:09.349+0000] {subprocess.py:106} INFO -  Spark Connect only:
+[2025-04-12T19:02:09.350+0000] {subprocess.py:106} INFO -    --remote CONNECT_URL       URL to connect to the server for Spark Connect, e.g.,
+[2025-04-12T19:02:09.351+0000] {subprocess.py:106} INFO -                               sc://host:port. --master and --deploy-mode cannot be set
+[2025-04-12T19:02:09.352+0000] {subprocess.py:106} INFO -                               together with this option. This option is experimental, and
+[2025-04-12T19:02:09.352+0000] {subprocess.py:106} INFO -                               might change between minor releases.
+[2025-04-12T19:02:09.353+0000] {subprocess.py:106} INFO - 
+[2025-04-12T19:02:09.353+0000] {subprocess.py:106} INFO -  Cluster deploy mode only:
+[2025-04-12T19:02:09.354+0000] {subprocess.py:106} INFO -   --driver-cores NUM          Number of cores used by the driver, only in cluster mode
+[2025-04-12T19:02:09.355+0000] {subprocess.py:106} INFO -                               (Default: 1).
+[2025-04-12T19:02:09.355+0000] {subprocess.py:106} INFO - 
+[2025-04-12T19:02:09.356+0000] {subprocess.py:106} INFO -  Spark standalone or Mesos with cluster deploy mode only:
+[2025-04-12T19:02:09.357+0000] {subprocess.py:106} INFO -   --supervise                 If given, restarts the driver on failure.
+[2025-04-12T19:02:09.357+0000] {subprocess.py:106} INFO - 
+[2025-04-12T19:02:09.359+0000] {subprocess.py:106} INFO -  Spark standalone, Mesos or K8s with cluster deploy mode only:
+[2025-04-12T19:02:09.359+0000] {subprocess.py:106} INFO -   --kill SUBMISSION_ID        If given, kills the driver specified.
+[2025-04-12T19:02:09.361+0000] {subprocess.py:106} INFO -   --status SUBMISSION_ID      If given, requests the status of the driver specified.
+[2025-04-12T19:02:09.362+0000] {subprocess.py:106} INFO - 
+[2025-04-12T19:02:09.362+0000] {subprocess.py:106} INFO -  Spark standalone and Mesos only:
+[2025-04-12T19:02:09.363+0000] {subprocess.py:106} INFO -   --total-executor-cores NUM  Total cores for all executors.
+[2025-04-12T19:02:09.363+0000] {subprocess.py:106} INFO - 
+[2025-04-12T19:02:09.364+0000] {subprocess.py:106} INFO -  Spark standalone, YARN and Kubernetes only:
+[2025-04-12T19:02:09.364+0000] {subprocess.py:106} INFO -   --executor-cores NUM        Number of cores used by each executor. (Default: 1 in
+[2025-04-12T19:02:09.365+0000] {subprocess.py:106} INFO -                               YARN and K8S modes, or all available cores on the worker
+[2025-04-12T19:02:09.365+0000] {subprocess.py:106} INFO -                               in standalone mode).
+[2025-04-12T19:02:09.366+0000] {subprocess.py:106} INFO - 
+[2025-04-12T19:02:09.367+0000] {subprocess.py:106} INFO -  Spark on YARN and Kubernetes only:
+[2025-04-12T19:02:09.367+0000] {subprocess.py:106} INFO -   --num-executors NUM         Number of executors to launch (Default: 2).
+[2025-04-12T19:02:09.367+0000] {subprocess.py:106} INFO -                               If dynamic allocation is enabled, the initial number of
+[2025-04-12T19:02:09.368+0000] {subprocess.py:106} INFO -                               executors will be at least NUM.
+[2025-04-12T19:02:09.368+0000] {subprocess.py:106} INFO -   --principal PRINCIPAL       Principal to be used to login to KDC.
+[2025-04-12T19:02:09.369+0000] {subprocess.py:106} INFO -   --keytab KEYTAB             The full path to the file that contains the keytab for the
+[2025-04-12T19:02:09.369+0000] {subprocess.py:106} INFO -                               principal specified above.
+[2025-04-12T19:02:09.369+0000] {subprocess.py:106} INFO - 
+[2025-04-12T19:02:09.370+0000] {subprocess.py:106} INFO -  Spark on YARN only:
+[2025-04-12T19:02:09.370+0000] {subprocess.py:106} INFO -   --queue QUEUE_NAME          The YARN queue to submit to (Default: "default").
+[2025-04-12T19:02:09.370+0000] {subprocess.py:106} INFO - 
+[2025-04-12T19:02:09.371+0000] {subprocess.py:110} INFO - Command exited with return code 1
+[2025-04-12T19:02:09.396+0000] {taskinstance.py:3311} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/taskinstance.py", line 767, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/taskinstance.py", line 733, in _execute_callable
+    return ExecutionCallableRunner(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/utils/operator_helpers.py", line 252, in run
+    return self.func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/baseoperator.py", line 422, in wrapper
+    return func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/operators/bash.py", line 276, in execute
+    raise AirflowException(
+airflow.exceptions.AirflowException: Bash command failed. The command returned a non-zero exit code 1.
+[2025-04-12T19:02:09.404+0000] {taskinstance.py:1225} INFO - Marking task as FAILED. dag_id=load_client_csv_to_delta, task_id=run_spark_submit, run_id=manual__2025-04-12T19:01:57.730620+00:00, execution_date=20250412T190157, start_date=20250412T190204, end_date=20250412T190209
+[2025-04-12T19:02:09.425+0000] {taskinstance.py:340} INFO - ::group::Post task execution logs
+[2025-04-12T19:02:09.426+0000] {standard_task_runner.py:124} ERROR - Failed to execute job 3 for task run_spark_submit (Bash command failed. The command returned a non-zero exit code 1.; 119)
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/task/task_runner/standard_task_runner.py", line 117, in _start_by_fork
+    ret = args.func(args, dag=self.dag)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/cli/cli_config.py", line 49, in command
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/utils/cli.py", line 116, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/cli/commands/task_command.py", line 483, in task_run
+    task_return_code = _run_task_by_selected_method(args, _dag, ti)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/cli/commands/task_command.py", line 256, in _run_task_by_selected_method
+    return _run_raw_task(args, ti)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/cli/commands/task_command.py", line 341, in _run_raw_task
+    return ti._run_raw_task(
+           ^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/utils/session.py", line 97, in wrapper
+    return func(*args, session=session, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/taskinstance.py", line 3005, in _run_raw_task
+    return _run_raw_task(
+           ^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/taskinstance.py", line 273, in _run_raw_task
+    TaskInstance._execute_task_with_callbacks(
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/taskinstance.py", line 3159, in _execute_task_with_callbacks
+    result = self._execute_task(context, task_orig)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/taskinstance.py", line 3183, in _execute_task
+    return _execute_task(self, context, task_orig)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/taskinstance.py", line 767, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/taskinstance.py", line 733, in _execute_callable
+    return ExecutionCallableRunner(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/utils/operator_helpers.py", line 252, in run
+    return self.func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/baseoperator.py", line 422, in wrapper
+    return func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/operators/bash.py", line 276, in execute
+    raise AirflowException(
+airflow.exceptions.AirflowException: Bash command failed. The command returned a non-zero exit code 1.
+[2025-04-12T19:02:09.497+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 1
+[2025-04-12T19:02:09.529+0000] {taskinstance.py:3895} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2025-04-12T19:02:09.531+0000] {local_task_job_runner.py:245} INFO - ::endgroup::
