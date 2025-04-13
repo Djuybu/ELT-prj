@@ -4,8 +4,8 @@ from datetime import datetime
 
 # Định nghĩa DAG
 dag = DAG(
-    'load_client_csv_to_delta',  # Tên DAG
-    description='DAG to load client data to Delta Lake using Spark',
+    'load_product_csv_to_delta',  # Tên DAG
+    description='DAG to load product data to Delta Lake using Spark',
     schedule_interval='@daily',  # Chạy hàng ngày
     start_date=datetime(2025, 4, 12),
     catchup=False
@@ -18,7 +18,7 @@ spark_submit_command = """
   --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension \
   --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog \
   --jars /opt/spark/jars/delta-spark_2.13-3.3.0.jar,/opt/spark/jars/delta-storage-3.3.0.jar \
-  /opt/airflow/dags/jobs/load/load_client_csv.py
+  /opt/airflow/dags/jobs/load/load_product_csv.py
 """
 
 # Sử dụng BashOperator để chạy lệnh spark-submit
