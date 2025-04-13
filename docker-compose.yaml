@@ -76,7 +76,7 @@ x-airflow-common:
     - /app/airflow/docker/ELT-prj/dags:/opt/airflow/dags
     - /app/airflow/docker/ELT-prj/logs:/opt/airflow/logs
     - /app/airflow/docker/ELT-prj/config:/opt/airflow/config
-    - /app/airflow/docker/ELT-prj/plugins:/opt/airflow/plugins
+    - /app/airflow/docker/ELT-prj/files:/opt/airflow/files
     - /opt/spark:/opt/spark
     - /opt/hadoop/etc/hadoop/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml:ro
   user: "${AIRFLOW_UID:-50000}:0"
