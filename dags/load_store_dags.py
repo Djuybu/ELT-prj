@@ -18,7 +18,7 @@ spark_submit_command = """
   --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension \
   --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog \
   --jars /opt/spark/jars/delta-spark_2.13-3.3.0.jar,/opt/spark/jars/delta-storage-3.3.0.jar \
-  /opt/airflow/dags/jobs/load/load_store_csv.py
+  /opt/airflow/dags/jobs/load/load_store_csv_02.py
 """
 
 # Sử dụng BashOperator để chạy lệnh spark-submit
