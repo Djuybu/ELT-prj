@@ -4,8 +4,8 @@ from datetime import datetime
 
 # Định nghĩa DAG
 dag = DAG(
-    'load_store_csv_to_delta',  # Tên DAG
-    description='DAG to load store data to Delta Lake using Spark',
+    'load_review_csv_to_delta',  # Tên DAG
+    description='DAG to load review data to Delta Lake using Spark',
     schedule_interval='@daily',  # Chạy hàng ngày
     start_date=datetime(2025, 4, 12),
     catchup=False
