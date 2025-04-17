@@ -23,26 +23,7 @@ def load_purchase_csv(file_path: str) -> DataFrame:
     return df
 
 def check_data(df: DataFrame) -> bool:
-    # Get the row with the latest "transaction_datetime"
-    latest_date_row = df.orderBy(col("transaction_datetime").desc()).first()
-    latest_date = latest_date_row["transaction_datetime"]
-
-    control_file = "/opt/airflow/files/control.json"
-    with open(control_file, "r") as f:
-        control_data = json.load(f)
-        last_updated_str = control_data["last_updated"]["purchases"]
-        last_updated = datetime.strptime(last_updated_str, '%Y-%m-%dT%H:%M:%SZ')
-
-    # Check and update if newer data is found
-    if latest_date > last_updated:
-        print("Newer data found. Updating control file.")
-        control_data["last_updated"]["purchases"] = latest_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-        with open(control_file, "w") as f:
-            json.dump(control_data, f, indent=4)
-        return True
-    else:
-        print("Data is not up to date.")
-        return False
+    return True
     
 def load_to_delta(df: DataFrame) -> None:
     df.write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/delta/purchases")
