@@ -7,14 +7,13 @@ from pyspark.sql.functions import col
 
 sc = SparkContext.getOrCreate()
 spark = SparkSession.builder \
-    .appName("DeltaLakeExample") \
+    .appName("DeltaLakeToGCS") \
     .master("local[*]") \
+    .config("spark.jars", "/opt/spark/jars/delta-spark_2.12-3.3.1.jar,/opt/spark/jars/gcs-connector-hadoop3-2.2.4-shaded.jar") \
     .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config('spark.jars', '/opt/spark/jars/delta-spark_2.12-3.3.1.jar') \
     .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-    .config("spark.hadoop.fs.defaultFS", "hdfs://10.128.0.2:9000") \
-    .config("spark.hadoop.hadoop.home.dir", "/opt/hadoop")  \
-    .config("spark.hadoop.yarn.resourcemanager.address", "hdfs://10.128.0.2:8032")\
+    .config("spark.hadoop.fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem") \
+    .config("spark.hadoop.google.cloud.auth.service.account.enable", "false") \
     .getOrCreate()
 
 # create dataframe from csv file
@@ -46,8 +45,7 @@ def check_data(df: DataFrame) -> bool:
         return False
     
 def load_to_delta(df: DataFrame) -> None:
-    # save delta table to Hadoop HDFS
-    df.write.format("delta").mode("overwrite").save("hdfs://10.128.0.2:9000/delta/purchase")  # Thay đổi IP cho phù hợp
+    df.write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/delta/purchases")
 
 if __name__ == "__main__":
     # Example usage
