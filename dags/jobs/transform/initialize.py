@@ -19,3 +19,7 @@ products_df = spark.read.format("delta").load("gs://bigdata-team3-uet-zz/delta/p
 transactions_df = spark.read.format("delta").load("gs://bigdata-team3-uet-zz/delta/transactions")
 stores_df = spark.read.format("delta").load("gs://bigdata-team3-uet-zz/delta/stores")
 
+clients_lakehouse = clients_df
+products_lakehouse = products_df
+stores_lakehouse = stores_df
+
