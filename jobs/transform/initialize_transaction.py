@@ -19,7 +19,7 @@ spark = SparkSession.builder \
 clients_df = spark.read.format("delta").load("gs://bigdata-team3-uet-zz/delta/clients")
 products_df = spark.read.format("delta").load("gs://bigdata-team3-uet-zz/delta/products")
 purchases_df = spark.read.format("delta").load("gs://bigdata-team3-uet-zz/delta/purchases")
-stores_df = spark.read.format("delta").load("gs://bigdata-team3-uet-zz/delta/stores")
+stores_df = spark.read.format("delta").load("gs://bigdata-team3-uet-zz/delta/store")
 
 clients_warehouse = clients_df
 products_warehouse = products_df
@@ -91,8 +91,8 @@ fact_sales_final = fact_sales.select(
 fact_sales_final.printSchema()
 fact_sales_final.show(10)
 
-fact_sales_final.write().format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/delta/warehouse/fact_sales")
-dim_time.write().format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/delta/warehouse/dim_times")
-clients_warehouse.write().format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/delta/warehouse/clients")
-products_warehouse.write().format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/delta/warehouse/products")
-stores_warehouse.write().format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/delta/warehouse/stores")
+fact_sales_final.write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/delta/warehouse/fact_sales")
+dim_time.write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/delta/warehouse/dim_times")
+clients_warehouse.write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/delta/warehouse/clients")
+products_warehouse.write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/delta/warehouse/products")
+stores_warehouse.write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/delta/warehouse/stores")
