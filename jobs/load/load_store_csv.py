@@ -23,26 +23,6 @@ def load_store_csv(file_path: str) -> DataFrame:
     df.show()
     return df
 
-def check_data(df: DataFrame) -> bool:
-    latest_date_row = df.orderBy(col("first_issue_date").desc()).first()
-    latest_date = latest_date_row["first_issue_date"]
-
-    control_file = "/opt/airflow/files/control.json"
-    with open(control_file, "r") as f:
-        control_data = json.load(f)
-        last_updated_str = control_data["last_updated"]["stores"]
-        last_updated = datetime.strptime(last_updated_str, '%Y-%m-%dT%H:%M:%SZ')
-
-    if latest_date > last_updated:
-        print("Newer data found. Updating control file.")
-        # Update the control file with the new date
-        control_data["last_updated"]["stores"] = latest_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-        with open(control_file, "w") as f:
-            json.dump(control_data, f, indent=4)
-        return True
-    else:
-        print("Data is not up to date.")
-        return False
 
     
 def load_to_delta(df: DataFrame) -> None:
@@ -52,5 +32,4 @@ if __name__ == "__main__":
     # Example usage
     file_path = "/opt/airflow/files/transactions/stores.csv"
     df = load_store_csv(file_path)
-    if check_data(df):
-        load_to_delta(df)
+    load_to_delta(df)
