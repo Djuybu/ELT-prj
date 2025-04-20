@@ -6,7 +6,6 @@ from datetime import datetime
 dag = DAG(
     'load_store_csv_to_delta',  # Tên DAG
     description='DAG to load store data to Delta Lake using Spark',
-    schedule_interval='@daily',  # Chạy hàng ngày
     start_date=datetime(2025, 4, 12),
     catchup=False
 )
@@ -18,7 +17,7 @@ spark_submit_command = """
   --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension \
   --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog \
   --jars /opt/spark/jars/delta-spark_2.13-3.3.0.jar,/opt/spark/jars/delta-storage-3.3.0.jar \
-  /opt/airflow/jobs/load/load_store_csv_02.py
+  /opt/airflow/jobs/load/load_store_csv.py
 """
 
 # Sử dụng BashOperator để chạy lệnh spark-submit

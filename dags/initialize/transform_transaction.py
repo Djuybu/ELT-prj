@@ -6,7 +6,6 @@ from datetime import datetime
 dag = DAG(
     'transform_transaction_raw_tables_to_warehouse',  # Tên DAG
     description='DAG to convert data into warehouse',
-    schedule_interval='@daily',  # Chạy hàng ngày
     start_date=datetime(2025, 4, 12),
     catchup=False
 )
