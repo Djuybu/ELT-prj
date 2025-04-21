@@ -2,7 +2,6 @@ from pyspark import SparkContext
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, current_timestamp, row_number
 from pyspark.sql.window import Window
-from delta.tables import DeltaTable
 from py4j.java_gateway import java_import
 
 # Khởi tạo SparkSession
