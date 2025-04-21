@@ -23,10 +23,10 @@ def load_purchase_csv(file_path: str) -> DataFrame:
     return df
     
 def load_to_delta(df: DataFrame) -> None:
-    df.write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/delta/purchases")
+    df.write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/silver/purchases")
 
 if __name__ == "__main__":
     # Example usage
-    file_path = "/opt/airflow/files/transactions/purchases.csv"
+    file_path = "/opt/airflow/files/transactions/purchases_cleaned.csv"
     df = load_purchase_csv(file_path)
     load_to_delta(df)
