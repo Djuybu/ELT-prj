@@ -36,6 +36,7 @@ with DAG(
     transform_to_silver = BashOperator(
         task_id='transform_bronze_to_silver',
         bash_command="""
+        pip install delta-spark==2.4.0 && \
         /opt/spark/bin/spark-submit \
         --master local[*] \
         --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension \
