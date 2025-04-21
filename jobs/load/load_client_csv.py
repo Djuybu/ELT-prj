@@ -21,7 +21,7 @@ def load_client_csv(file_path: str) -> DataFrame:
     return df
 
 def load_to_delta(df: DataFrame) -> None:
-    df.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("gs://bigdata-team3-uet-zz/silver/clients")
+    df.write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/silver/clients")
 
 if __name__ == "__main__":
     # Example usage
