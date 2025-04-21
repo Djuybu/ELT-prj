@@ -2,6 +2,7 @@ from pyspark import SparkContext
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, current_timestamp, row_number
 from pyspark.sql.window import Window
+from delta.tables import DeltaTable
 from py4j.java_gateway import java_import
 
 # Khởi tạo SparkSession
@@ -32,14 +33,17 @@ latest_df = bronze_df.withColumn("row_num", row_number().over(window_spec)) \
     .filter("row_num = 1") \
     .drop("row_num", "source_file", "ingestion_time")
 
-# Kiểm tra thư mục Delta table đã tồn tại chưa
+# Import Java URI và Path
+java_import(spark._jvm, "java.net.URI")
 java_import(spark._jvm, "org.apache.hadoop.fs.Path")
-fs = spark._jvm.org.apache.hadoop.fs.FileSystem.get(spark._jsc.hadoopConfiguration())
 
+# Tạo FileSystem với URI đúng
+uri = spark._jvm.URI(silver_path)
+fs = spark._jvm.org.apache.hadoop.fs.FileSystem.get(uri, spark._jsc.hadoopConfiguration())
+
+# Kiểm tra xem silver_path đã tồn tại chưa
 if fs.exists(spark._jvm.Path(silver_path)):
-    # Nếu đã tồn tại bảng silver, thực hiện merge
     silver_table = DeltaTable.forPath(spark, silver_path)
-
     silver_table.alias("target").merge(
         latest_df.alias("source"),
         f"target.{primary_key} = source.{primary_key}"
@@ -47,7 +51,6 @@ if fs.exists(spark._jvm.Path(silver_path)):
      .whenNotMatchedInsertAll() \
      .execute()
 else:
-    # Nếu chưa có, ghi dữ liệu mới tạo bảng silver
     latest_df.write.format("delta").save(silver_path)
 
 print("✅ Merge from bronze to silver completed.")
