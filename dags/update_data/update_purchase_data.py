@@ -10,7 +10,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id='clients_etl_pipeline',
+    dag_id='purchases_etl_pipeline',
     default_args=default_args,
     schedule_interval='@weekly',
     catchup=False,
