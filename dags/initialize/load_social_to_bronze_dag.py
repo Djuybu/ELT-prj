@@ -18,7 +18,7 @@ spark_submit_command = """
   --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension \
   --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog \
   --jars /opt/spark/jars/delta-spark_2.13-3.3.0.jar,/opt/spark/jars/delta-storage-3.3.0.jar \
-  /opt/airflow/docker/ELT-prj/load_social_media_to_bronze.py
+  /opt/airflow/docker/ELT-prj/jobs/load_social_media_to_bronze.py
 """
 
 # Tạo task sử dụng BashOperator
