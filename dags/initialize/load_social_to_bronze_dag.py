@@ -11,7 +11,7 @@ dag = DAG(
     catchup=False
 )
 
-# Lệnh spark-submit để chạy Spark job
+# Câu lệnh spark-submit để chạy job
 spark_submit_command = """
  /opt/spark/bin/spark-submit \
   --master local[*] \
@@ -21,7 +21,7 @@ spark_submit_command = """
   /opt/airflow/docker/ELT-prj/load_social_media_to_bronze.py
 """
 
-# Task sử dụng BashOperator
+# Tạo task sử dụng BashOperator
 load_to_bronze_task = BashOperator(
     task_id='run_social_bronze_spark_job',
     bash_command=spark_submit_command,
