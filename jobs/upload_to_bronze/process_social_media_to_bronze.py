@@ -207,8 +207,10 @@ if post_hashtag_df_all:
     post_hashtag_df_all.withColumn("ingestion_time", current_timestamp()) \
         .write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/bronze/fact_post_hashtags")
 
-if user_mentions_df_all:
+if user_mentions_df_all is not None and not user_mentions_df_all.isEmpty():
     user_mentions_df_all.withColumn("ingestion_time", current_timestamp()) \
         .write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/bronze/fact_user_mentions")
+else:
+    print("⚠️ WARNING: DataFrame user_mentions_df_all is None or empty. Skipping write operation.")
 
 print("✅ HOÀN TẤT: Đã chuẩn hóa và lưu xuống Bronze layer.")
