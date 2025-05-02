@@ -16,7 +16,7 @@ platform_files = {
     "Facebook": "Facebook-datasets.csv",
     "Instagram": "Instagram-datasets.csv",
     "Twitter": "Twitter-dataset.csv",
-    "TikTok": "Tiktok-datasets.csv"
+    "TikTok": "TikTok-datasets.csv"
 }
 
 # ⚙️ Spark Session
