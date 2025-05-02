@@ -1,6 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, lit, split, trim, lower, current_timestamp, monotonically_increasing_id, min as spark_min, array, explode
-from pyspark.sql.types import StringType, LongType
+from pyspark.sql.types import StringType, LongType, StructType, StructField
 from pyspark.sql.functions import udf
 import os
 import random
@@ -27,7 +27,11 @@ base_path = "/opt/airflow/files"
 platform_files = [f for f in os.listdir(base_path) if f.endswith('.csv')]
 
 # Khởi tạo các DataFrame tổng hợp và bộ đếm ID
-users_df_all, posts_df_all, hashtags_df_all, post_hashtag_df_all, user_mentions_df_all = None, None, None, None, None
+users_df_all, posts_df_all, hashtags_df_all, post_hashtag_df_all, user_mentions_df_all = None, None, None, None, spark.createDataFrame([], StructType([
+    StructField("post_id", StringType(), True),
+    StructField("mentioned_user_id", LongType(), True)
+])) # Khởi tạo user_mentions_df_all với schema dự kiến
+
 user_id_counter = 0
 hashtag_id_counter = 0
 user_map = {}  # Dictionary ánh xạ display_name với user_id
@@ -161,7 +165,13 @@ for filename in platform_files:
         post_hashtag_df_all = post_hashtag_df if post_hashtag_df_all is None else post_hashtag_df_all.union(post_hashtag_df)
 
     # Xử lý bảng FACT_USER_MENTIONS (người dùng được nhắc đến)
-    if ("tagged_user_in" in df_cols or "tagged_users" in df_cols) and "post_url" in df_cols:
+    has_mention_data = False
+    if "tagged_user_in" in df_cols and df.filter(col("tagged_user_in").isNotNull()).count() > 0 and "post_url" in df_cols:
+        has_mention_data = True
+    elif "tagged_users" in df_cols and df.filter(col("tagged_users").isNotNull()).count() > 0 and "post_url" in df_cols:
+        has_mention_data = True
+
+    if has_mention_data and "post_url" in df_cols:
         # UDF để trích xuất user_id của người được nhắc đến từ URL, xử lý trường hợp None
         def extract_mention_id(url):
             if url is None:
@@ -188,7 +198,7 @@ for filename in platform_files:
             .dropDuplicates() # Loại bỏ các cặp post_id và mentioned_user_id trùng lặp
 
         # Thêm DataFrame mentions hiện tại vào DataFrame tổng hợp
-        user_mentions_df_all = mentions_df if user_mentions_df_all is None else user_mentions_df_all.union(mentions_df)
+        user_mentions_df_all = user_mentions_df_all.union(mentions_df)
 
 # 🟫 Ghi các DataFrame tổng hợp xuống Bronze layer (lớp dữ liệu thô đã được chuẩn hóa)
 if users_df_all:
@@ -207,10 +217,8 @@ if post_hashtag_df_all:
     post_hashtag_df_all.withColumn("ingestion_time", current_timestamp()) \
         .write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/bronze/fact_post_hashtags")
 
-if user_mentions_df_all is not None and not user_mentions_df_all.isEmpty():
-    user_mentions_df_all.withColumn("ingestion_time", current_timestamp()) \
-        .write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/bronze/fact_user_mentions")
-else:
-    print("⚠️ WARNING: DataFrame user_mentions_df_all is None or empty. Skipping write operation.")
+user_mentions_df_all = user_mentions_df_all.dropDuplicates() # Loại bỏ trùng lặp cuối cùng
+user_mentions_df_all.withColumn("ingestion_time", current_timestamp()) \
+    .write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/bronze/fact_user_mentions")
 
 print("✅ HOÀN TẤT: Đã chuẩn hóa và lưu xuống Bronze layer.")
