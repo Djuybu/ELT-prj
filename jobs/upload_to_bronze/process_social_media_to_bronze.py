@@ -36,10 +36,28 @@ hashtag_map = {}
 random_review_udf = udf(lambda: random.choice(sample_reviews), StringType())
 random_int_udf = udf(lambda: random.randint(100, 100000), LongType())
 
+# Chuẩn hoá tên cột
+rename_map = {
+    "user_url": "user_posted",
+    "post_user": "user_posted",
+    "commenter_url": "user_posted",
+    "date_created": "comment_date",
+    "post_date_created": "comment_date",
+    "comment": "comment_text",         # nếu bạn muốn tái sử dụng phần hashtag/mentions
+    "comment_user": "user_posted",     # Instagram
+    "commenter_user_name": "display_name"  # TikTok
+}
+
 # Đọc từng file
 for filename in platform_files:
     platform = filename.split("-")[0]  # Giả sử tên platform có dạng "Facebook-datasets.csv"
     df = spark.read.option("header", True).csv(os.path.join(base_path, filename))
+    
+    # Chuẩn hoá tên cột
+    for src, dst in rename_map.items():
+        if src in df.columns and dst not in df.columns:
+            df = df.withColumnRenamed(src, dst)
+    
     df_cols = df.columns
 
     # USERS
@@ -119,19 +137,16 @@ for filename in platform_files:
     if "post_url" in df_cols and "hashtag_comment" in df_cols:
         # Tạo bảng post_hashtag
         get_hashtag_id_udf = udf(lambda text: hashtag_map.get(text), LongType())
-        if "post_url" in df_cols:
-            post_hashtag_df = df.select("post_url", "hashtag_comment").dropna() \
-                .withColumn("post_id", split(col("post_url"), "/").getItem(-1)) \
-                .withColumn("hashtag_text", trim(lower(col("hashtag_comment")))) \
-                .withColumn("hashtag_id", get_hashtag_id_udf(col("hashtag_text"))) \
-                .select("post_id", "hashtag_id") \
-                .dropDuplicates()
-            
-            post_hashtag_df_all = post_hashtag_df if post_hashtag_df_all is None else post_hashtag_df_all.union(post_hashtag_df)
+        post_hashtag_df = df.select("post_url", "hashtag_comment").dropna() \
+            .withColumn("post_id", split(col("post_url"), "/").getItem(-1)) \
+            .withColumn("hashtag_text", trim(lower(col("hashtag_comment")))) \
+            .withColumn("hashtag_id", get_hashtag_id_udf(col("hashtag_text"))) \
+            .select("post_id", "hashtag_id") \
+            .dropDuplicates()
+        
+        post_hashtag_df_all = post_hashtag_df if post_hashtag_df_all is None else post_hashtag_df_all.union(post_hashtag_df)
 
     # USER_MENTIONS
-    from pyspark.sql.functions import array, explode
-
     if ("tagged_user_in" in df_cols or "tagged_users" in df_cols) and "post_url" in df_cols:
         def extract_mention_id(url):
             if url is None:
