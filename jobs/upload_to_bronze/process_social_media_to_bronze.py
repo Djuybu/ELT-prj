@@ -121,17 +121,35 @@ if "post_url" in df_cols and "user_posted" in df_cols:
             post_hashtag_df_all = post_hashtag_df if post_hashtag_df_all is None else post_hashtag_df_all.union(post_hashtag_df)
 
     # USER_MENTIONS
-    if "tagged_user_in" in df_cols and "post_url" in df_cols:
-        get_mentioned_id_udf = udf(lambda url: user_map.get(url.split("/")[-1]), LongType())
-        
-        # Lấy user_mentions
-        user_mentions_df = df.select("post_url", "tagged_user_in").dropna() \
-            .withColumn("post_id", split(col("post_url"), "/").getItem(-1)) \
-            .withColumn("mentioned_user_id", get_mentioned_id_udf(col("tagged_user_in"))) \
-            .select("post_id", "mentioned_user_id") \
-            .dropDuplicates()
-        
-        user_mentions_df_all = user_mentions_df if user_mentions_df_all is None else user_mentions_df_all.union(user_mentions_df)
+    from pyspark.sql.functions import array, explode
+
+if ("tagged_user_in" in df_cols or "tagged_users" in df_cols) and "post_url" in df_cols:
+    def extract_mention_id(url):
+        if url is None:
+            return None
+        username = url.strip().split("/")[-1]
+        return user_map.get(username)
+
+    get_mentioned_id_udf = udf(extract_mention_id, LongType())
+
+    # Chuẩn bị cột danh sách người được tag
+    mention_cols = []
+    if "tagged_user_in" in df_cols:
+        mention_cols.append(col("tagged_user_in"))
+    if "tagged_users" in df_cols:
+        mention_cols.append(col("tagged_users"))
+
+    # Gộp lại thành 1 array, explode ra từng dòng
+    mentions_df = df.filter(col("post_url").isNotNull()) \
+        .withColumn("mention", explode(array(*mention_cols))) \
+        .filter(col("mention").isNotNull()) \
+        .withColumn("post_id", split(col("post_url"), "/").getItem(-1)) \
+        .withColumn("mentioned_user_id", get_mentioned_id_udf(col("mention"))) \
+        .select("post_id", "mentioned_user_id") \
+        .dropDuplicates()
+
+    user_mentions_df_all = mentions_df if user_mentions_df_all is None else user_mentions_df_all.union(mentions_df)
+
 
 # 🟫 Ghi xuống Bronze layer
 if users_df_all:
