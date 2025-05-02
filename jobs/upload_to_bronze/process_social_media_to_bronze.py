@@ -102,8 +102,8 @@ for filename in platform_files:
                 return None
 
         extract_post_id_udf = udf(extract_post_id, StringType())
-        # UDF để lấy user_id từ user_posted (URL) dựa trên user_map
-        get_user_id_udf = udf(lambda url: user_map.get(url.split("/")[-1]), LongType())
+        # UDF để lấy user_id từ user_posted (URL) dựa trên user_map, xử lý trường hợp None
+        get_user_id_udf = udf(lambda url: user_map.get(url.split("/")[-1]) if url else None, LongType())
 
         # Lấy ngày comment sớm nhất và trừ đi 1 ngày để làm ngày đăng bài (giả định)
         if "comment_date" in df_cols:
@@ -162,7 +162,7 @@ for filename in platform_files:
 
     # Xử lý bảng FACT_USER_MENTIONS (người dùng được nhắc đến)
     if ("tagged_user_in" in df_cols or "tagged_users" in df_cols) and "post_url" in df_cols:
-        # UDF để trích xuất user_id của người được nhắc đến từ URL
+        # UDF để trích xuất user_id của người được nhắc đến từ URL, xử lý trường hợp None
         def extract_mention_id(url):
             if url is None:
                 return None
