@@ -1,5 +1,7 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, lit, monotonically_increasing_id, split, explode, trim, lower, current_timestamp
+from pyspark.sql.functions import col, lit, split, trim, lower, current_timestamp, monotonically_increasing_id, min as spark_min
+from pyspark.sql.types import StringType, LongType
+from pyspark.sql.functions import udf
 import os
 import random
 
@@ -27,80 +29,96 @@ spark = SparkSession.builder \
 
 base_path = "/opt/airflow/files"
 
+# Các biến tổng hợp
 users_df_all, posts_df_all, hashtags_df_all, post_hashtag_df_all, user_mentions_df_all = None, None, None, None, None
 user_id_counter = 0
 hashtag_id_counter = 0
-user_url_to_id = {}
+user_posted_to_id = {}
 hashtag_text_to_id = {}
+
+# UDF sinh nội dung ngẫu nhiên
+random_review_udf = udf(lambda: random.choice(sample_reviews), StringType())
+random_int_udf = udf(lambda: random.randint(100, 100000), LongType())
 
 for platform, filename in platform_files.items():
     df = spark.read.option("header", True).csv(os.path.join(base_path, filename))
-    
+
     # USERS
-    user_urls = df.select("comment_user_url").dropna().distinct().withColumnRenamed("comment_user_url", "bio")
-    user_df = user_urls.withColumn("user_id", monotonically_increasing_id() + user_id_counter)\
-        .withColumn("display_name", split("bio", "/").getItem(-1))\
-        .withColumn("is_verified", lit(True))\
-        .withColumn("followers_count", lit(random.randint(1000, 100000)))\
-        .withColumn("following_count", lit(random.randint(100, 1000)))\
-        .withColumn("post_count", lit(random.randint(1, 100)))\
-        .withColumn("type_of_account", lit(platform))
-    user_df = user_df.select("user_id", "display_name", "bio", "is_verified", "followers_count", "following_count", "post_count", "type_of_account")
-    user_id_counter += 1000000  # tránh trùng ID
-    user_urls_map = user_df.select("bio", "user_id").rdd.collectAsMap()
-    user_url_to_id.update(user_urls_map)
+    user_urls = df.select("user_posted").dropna().distinct().withColumnRenamed("user_posted", "user_posted_clean")
+
+    users_df = user_urls.withColumn("user_id", monotonically_increasing_id() + user_id_counter) \
+        .withColumn("display_name", split(col("user_posted_clean"), "/").getItem(-1)) \
+        .withColumn("bio", col("user_posted_clean")) \
+        .withColumn("is_verified", lit(True)) \
+        .withColumn("followers_count", random_int_udf()) \
+        .withColumn("following_count", random_int_udf()) \
+        .withColumn("post_count", random_int_udf()) \
+        .withColumn("type_of_account", lit(platform)) \
+        .select("user_id", "display_name", "bio", "is_verified", "followers_count", "following_count", "post_count", "type_of_account")
+
+    user_id_counter += 1000000
+    user_map = users_df.select("bio", "user_id").rdd.collectAsMap()
+    user_posted_to_id.update(user_map)
 
     # POSTS
-    post_df = df.withColumn("post_id", split("post_url", "/").getItem(-1))\
-        .withColumn("user_id", df["comment_user_url"].map(user_url_to_id))\
-        .withColumn("post_content", lit(random.choice(sample_reviews)))\
-        .withColumn("post_url", col("post_url"))\
-        .withColumn("post_date", col("comment_date"))  # sẽ trừ 1 ngày ở transform layer
-    post_df = post_df.select("post_id", "user_id", "post_content", "post_date", "post_url")
+    get_user_id_udf = udf(lambda url: user_posted_to_id.get(url), LongType())
+
+    # Lấy ngày sớm nhất trong comment_date (trừ 1 ngày ở transform layer)
+    min_date = df.select(spark_min("comment_date").alias("min_date")).collect()[0]["min_date"]
+
+    posts_df = df.withColumn("post_id", split(col("post_url"), "/").getItem(-1)) \
+        .withColumn("user_id", get_user_id_udf(col("user_posted"))) \
+        .withColumn("post_content", random_review_udf()) \
+        .withColumn("post_date", lit(min_date)) \
+        .withColumn("post_url", col("post_url")) \
+        .select("post_id", "user_id", "post_content", "post_date", "post_url")
 
     # HASHTAGS
-    hashtags = df.select("hashtag_comment").dropna().distinct()\
-        .withColumn("hashtag_text", trim(lower(col("hashtag_comment"))))\
-        .drop("hashtag_comment")
-    hashtags = hashtags.withColumn("hashtag_id", monotonically_increasing_id() + hashtag_id_counter)
+    hashtags_df = df.select("hashtag_comment").dropna().distinct() \
+        .withColumn("hashtag_text", trim(lower(col("hashtag_comment")))) \
+        .drop("hashtag_comment") \
+        .withColumn("hashtag_id", monotonically_increasing_id() + hashtag_id_counter)
+
     hashtag_id_counter += 100000
-    hashtag_map = hashtags.select("hashtag_text", "hashtag_id").rdd.collectAsMap()
+    hashtag_map = hashtags_df.select("hashtag_text", "hashtag_id").rdd.collectAsMap()
     hashtag_text_to_id.update(hashtag_map)
 
+    get_hashtag_id_udf = udf(lambda text: hashtag_text_to_id.get(text), LongType())
+
     # POST_HASHTAG
-    df_hashtag = df.select("post_url", "hashtag_comment").dropna()\
-        .withColumn("post_id", split("post_url", "/").getItem(-1))\
-        .withColumn("hashtag_text", trim(lower(col("hashtag_comment"))))\
-        .withColumn("hashtag_id", df["hashtag_comment"].map(hashtag_text_to_id))\
+    post_hashtag_df = df.select("post_url", "hashtag_comment").dropna() \
+        .withColumn("post_id", split(col("post_url"), "/").getItem(-1)) \
+        .withColumn("hashtag_text", trim(lower(col("hashtag_comment")))) \
+        .withColumn("hashtag_id", get_hashtag_id_udf(col("hashtag_text"))) \
         .select("post_id", "hashtag_id")
 
     # USER_MENTIONS
-    df_mentions = df.select("post_url", "tagged_user_in").dropna()\
-        .withColumn("post_id", split("post_url", "/").getItem(-1))\
-        .withColumn("mentioned_user_id", df["tagged_user_in"].map(user_url_to_id))\
+    user_mentions_df = df.select("post_url", "tagged_user_in").dropna() \
+        .withColumn("post_id", split(col("post_url"), "/").getItem(-1)) \
+        .withColumn("mentioned_user_id", get_user_id_udf(col("tagged_user_in"))) \
         .select("post_id", "mentioned_user_id")
 
-    # Gộp từng bảng từ các platform
-    users_df_all = user_df if users_df_all is None else users_df_all.union(user_df)
-    posts_df_all = post_df if posts_df_all is None else posts_df_all.union(post_df)
-    hashtags_df_all = hashtags if hashtags_df_all is None else hashtags_df_all.union(hashtags)
-    post_hashtag_df_all = df_hashtag if post_hashtag_df_all is None else post_hashtag_df_all.union(df_hashtag)
-    user_mentions_df_all = df_mentions if user_mentions_df_all is None else user_mentions_df_all.union(df_mentions)
+    # UNION dữ liệu
+    users_df_all = users_df if users_df_all is None else users_df_all.union(users_df)
+    posts_df_all = posts_df if posts_df_all is None else posts_df_all.union(posts_df)
+    hashtags_df_all = hashtags_df if hashtags_df_all is None else hashtags_df_all.union(hashtags_df)
+    post_hashtag_df_all = post_hashtag_df if post_hashtag_df_all is None else post_hashtag_df_all.union(post_hashtag_df)
+    user_mentions_df_all = user_mentions_df if user_mentions_df_all is None else user_mentions_df_all.union(user_mentions_df)
 
 # 🟫 Ghi vào Bronze layer
-users_df_all.withColumn("ingestion_time", current_timestamp())\
+users_df_all.withColumn("ingestion_time", current_timestamp()) \
     .write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/bronze/dim_users")
 
-posts_df_all.withColumn("ingestion_time", current_timestamp())\
+posts_df_all.withColumn("ingestion_time", current_timestamp()) \
     .write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/bronze/dim_posts")
 
-hashtags_df_all.withColumn("ingestion_time", current_timestamp())\
+hashtags_df_all.withColumn("ingestion_time", current_timestamp()) \
     .write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/bronze/dim_hashtags")
 
-post_hashtag_df_all.withColumn("ingestion_time", current_timestamp())\
+post_hashtag_df_all.withColumn("ingestion_time", current_timestamp()) \
     .write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/bronze/fact_post_hashtags")
 
-user_mentions_df_all.withColumn("ingestion_time", current_timestamp())\
+user_mentions_df_all.withColumn("ingestion_time", current_timestamp()) \
     .write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/bronze/fact_user_mentions")
 
-print("✅ Done loading social media data to Bronze layer.")
+print("✅ Done loading normalized data to Bronze layer.")
