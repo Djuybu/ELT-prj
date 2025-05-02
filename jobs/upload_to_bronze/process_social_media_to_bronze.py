@@ -11,10 +11,10 @@ sample_reviews = [
 
 # ✳️ Danh sách các nguồn mạng xã hội
 platform_files = {
-    "Facebook": "facebook.csv",
-    "Instagram": "instagram.csv",
-    "Twitter": "twitter.csv",
-    "TikTok": "tiktok.csv"
+    "Facebook": "Facebook-datasets.csv",
+    "Instagram": "Instagram-datasets.csv",
+    "Twitter": "Twitter-datasets.csv",
+    "TikTok": "Tiktok-datasets.csv"
 }
 
 # ⚙️ Spark session
