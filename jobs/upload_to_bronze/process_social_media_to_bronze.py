@@ -25,7 +25,7 @@ spark = SparkSession.builder \
     .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
     .getOrCreate()
 
-base_path = "/app/airflow/files"
+base_path = "/opt/airflow/files"
 
 users_df_all, posts_df_all, hashtags_df_all, post_hashtag_df_all, user_mentions_df_all = None, None, None, None, None
 user_id_counter = 0
