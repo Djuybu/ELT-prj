@@ -27,7 +27,7 @@ with DAG(
         --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension \
         --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog \
         --conf spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem \
-        --jars /opt/spark/jars/delta-spark_2.13-3.3.0.jar,/opt/spark/jars/delta-storage-3.3.0.jar,/opt/spark/jars/gcs-connector-hadoop3-latest.jar \
+        --jars /opt/spark/jars/delta-spark_2.12-3.1.0.jar,/opt/spark/jars/delta-storage-2.4.0.jar,/opt/spark/jars/gcs-connector-hadoop3-latest.jar \
         /opt/airflow/jobs/upload_to_bronze/process_social_media_to_bronze.py
         """
     )
@@ -36,13 +36,13 @@ with DAG(
     transform_to_silver = BashOperator(
         task_id='transform_bronze_to_silver',
         bash_command="""  
-        pip install delta-spark==2.4.0 && \
+        pip install delta-spark==1.0.0 && \
         /opt/spark/bin/spark-submit \
         --master local[*] \
         --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension \
         --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog \
         --conf spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem \
-        --jars /opt/spark/jars/delta-spark_2.13-3.3.0.jar,/opt/spark/jars/delta-storage-3.3.0.jar,/opt/spark/jars/gcs-connector-hadoop3-latest.jar \
+        --jars /opt/spark/jars/delta-spark_2.12-3.1.0.jar,/opt/spark/jars/delta-storage-2.4.0.jar,/opt/spark/jars/gcs-connector-hadoop3-latest.jar \
         /opt/airflow/jobs/transform_to_silver/transform_bronze_social_to_silver.py
         """
     )
