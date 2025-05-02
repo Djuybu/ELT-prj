@@ -28,7 +28,7 @@ with DAG(
         --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog \
         --conf spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem \
         --jars /opt/spark/jars/delta-spark_2.13-3.3.0.jar,/opt/spark/jars/delta-storage-3.3.0.jar,/opt/spark/jars/gcs-connector-hadoop3-latest.jar \
-        /app/airflow/docker/ELT-prj/dags/initialize/social_media/bronze/process_social_media_to_bronze.py
+        /app/airflow/docker/ELT-prj/jobs/upload_to_bronze/process_social_media_to_bronze.py
         """
     )
 
@@ -43,7 +43,7 @@ with DAG(
         --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog \
         --conf spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem \
         --jars /opt/spark/jars/delta-spark_2.13-3.3.0.jar,/opt/spark/jars/delta-storage-3.3.0.jar,/opt/spark/jars/gcs-connector-hadoop3-latest.jar \
-        /app/airflow/docker/ELT-prj/dags/initialize/social_media/silver/transform_bronze_social_to_silver.py
+        /app/airflow/docker/ELT-prj/jobs/initialize/social_media/silver/transform_bronze_social_to_silver.py
         """
     )
 
