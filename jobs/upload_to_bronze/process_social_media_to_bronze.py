@@ -11,14 +11,6 @@ sample_reviews = [
     "Would buy again.", "Not what I expected.", "Perfect gift idea!"
 ]
 
-# ✳️ File dữ liệu
-platform_files = {
-    "Facebook": "Facebook-datasets.csv",
-    "Instagram": "Instagram-datasets.csv",
-    "Twitter": "Twitter-dataset.csv",
-    "TikTok": "TikTok-datasets.csv"
-}
-
 # ⚙️ Spark Session
 spark = SparkSession.builder \
     .appName("NormalizeSocialMedia") \
@@ -28,6 +20,9 @@ spark = SparkSession.builder \
     .getOrCreate()
 
 base_path = "/opt/airflow/files"
+
+# Liệt kê tất cả các file trong thư mục
+platform_files = [f for f in os.listdir(base_path) if f.endswith('.csv')]
 
 # Tổng hợp
 users_df_all, posts_df_all, hashtags_df_all, post_hashtag_df_all, user_mentions_df_all = None, None, None, None, None
@@ -40,7 +35,8 @@ hashtag_map = {}
 random_review_udf = udf(lambda: random.choice(sample_reviews), StringType())
 random_int_udf = udf(lambda: random.randint(100, 100000), LongType())
 
-for platform, filename in platform_files.items():
+for filename in platform_files:
+    platform = filename.split("-")[0]  # Giả sử tên platform có dạng "Facebook-datasets.csv"
     df = spark.read.option("header", True).csv(os.path.join(base_path, filename))
     df_cols = df.columns
 
