@@ -47,6 +47,8 @@ for platform, filename in platform_files.items():
     # USERS
     if "user_posted" in df_cols:
         user_urls = df.select("user_posted").dropna().distinct().withColumnRenamed("user_posted", "user_url")
+        
+        # Tạo user_id và các thông tin khác
         users_df = user_urls.withColumn("user_id", monotonically_increasing_id() + user_id_counter) \
             .withColumn("display_name", split(col("user_url"), "/").getItem(-1)) \
             .withColumn("bio", lit(f"User from {platform}")) \
@@ -67,8 +69,11 @@ for platform, filename in platform_files.items():
     # POSTS
     if "post_url" in df_cols and "user_posted" in df_cols and "comment_date" in df_cols:
         get_user_id_udf = udf(lambda url: user_map.get(url.split("/")[-1]), LongType())
+        
+        # Lấy ngày comment sớm nhất
         min_date = df.select(spark_min("comment_date").alias("min_date")).collect()[0]["min_date"]
         
+        # Tạo bảng posts
         posts_df = df.withColumn("post_id", split(col("post_url"), "/").getItem(-1)) \
             .withColumn("user_id", get_user_id_udf(col("user_posted"))) \
             .withColumn("post_content", random_review_udf()) \
@@ -93,6 +98,7 @@ for platform, filename in platform_files.items():
 
         hashtags_df_all = hashtags_df if hashtags_df_all is None else hashtags_df_all.union(hashtags_df)
 
+        # Tạo bảng post_hashtag
         get_hashtag_id_udf = udf(lambda text: hashtag_map.get(text), LongType())
         if "post_url" in df_cols:
             post_hashtag_df = df.select("post_url", "hashtag_comment").dropna() \
@@ -107,6 +113,8 @@ for platform, filename in platform_files.items():
     # USER_MENTIONS
     if "tagged_user_in" in df_cols and "post_url" in df_cols:
         get_mentioned_id_udf = udf(lambda url: user_map.get(url.split("/")[-1]), LongType())
+        
+        # Lấy user_mentions
         user_mentions_df = df.select("post_url", "tagged_user_in").dropna() \
             .withColumn("post_id", split(col("post_url"), "/").getItem(-1)) \
             .withColumn("mentioned_user_id", get_mentioned_id_udf(col("tagged_user_in"))) \
