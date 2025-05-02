@@ -15,7 +15,7 @@ sample_reviews = [
 platform_files = {
     "Facebook": "Facebook-datasets.csv",
     "Instagram": "Instagram-datasets.csv",
-    "Twitter": "Twitter-datasets.csv",
+    "Twitter": "Twitter-dataset.csv",
     "TikTok": "Tiktok-datasets.csv"
 }
 
