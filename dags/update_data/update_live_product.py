@@ -28,7 +28,7 @@ dag = DAG(
 )
 
 # Define path for the PySpark script
-SPARK_SCRIPT_PATH = Variable.get("SPARK_SCRIPT_PATH", "/opt/airflow/jobs/upload_to_bronze/kafka_to_gcs_processor.py")
+SPARK_SCRIPT_PATH = Variable.get("SPARK_SCRIPT_PATH", "/opt/airflow/jobs/upload_to_bronze/kafka_product_listener.py")
 # Check if script exists
 check_script = BashOperator(
     task_id='check_script_exists',
