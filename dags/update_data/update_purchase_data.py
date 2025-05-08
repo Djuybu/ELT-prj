@@ -48,7 +48,7 @@ with DAG(
     )
 
     update_dim_time = BashOperator(
-        task_id='transform_silver_to_gold',
+        task_id='update_dim_time',
         bash_command="""
         pip install delta-spark==2.4.0 && \
         /opt/spark/bin/spark-submit \
@@ -57,7 +57,7 @@ with DAG(
         --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog \
         --conf spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem \
         --jars /opt/spark/jars/delta-spark_2.13-3.3.0.jar,/opt/spark/jars/delta-storage-3.3.0.jar,/opt/spark/jars/gcs-connector-hadoop3-latest.jar \
-        /opt/airflow/jobs/transform_to_gold/update_dim_time.py
+        /opt/airflow/jobs/transform_to_gold/transform_purchase_to_gold.py
         """
     )
 
@@ -75,4 +75,4 @@ with DAG(
         """
     )
     
-    load_to_bronze >> transform_to_silver
+    load_to_bronze >> transform_to_silver >> update_dim_time >>  transform_to_gold 
