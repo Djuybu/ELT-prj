@@ -24,11 +24,17 @@ silver_path = "gs://bigdata-team3-uet-zz/silver/purchases"
 primary_key = "purchase_id"
 
 
+primary_key = "transaction_id"  # ← dùng cho silver
+
 bronze_df = spark.read.format("delta").load(bronze_path) \
     .filter("ingestion_time >= current_timestamp() - INTERVAL 7 DAYS")
 
+# kiểm tra để tránh lỗi cột không tồn tại
+if primary_key not in bronze_df.columns:
+    raise ValueError(f"Primary key '{primary_key}' not found in bronze data columns: {bronze_df.columns}")
 
 window_spec = Window.partitionBy(primary_key).orderBy(col("ingestion_time").desc())
+
 latest_df = bronze_df.withColumn("row_num", row_number().over(window_spec)) \
     .filter("row_num = 1") \
     .drop("row_num", "source_file", "ingestion_time")
