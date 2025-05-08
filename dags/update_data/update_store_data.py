@@ -47,4 +47,18 @@ with DAG(
         """
     )
 
-    load_to_bronze >> transform_to_silver
+    transform_to_gold = BashOperator(
+        task_id='transform_silver_to_gold',
+        bash_command="""
+        pip install delta-spark==2.4.0 && \
+        /opt/spark/bin/spark-submit \
+        --master local[*] \
+        --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension \
+        --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog \
+        --conf spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem \
+        --jars /opt/spark/jars/delta-spark_2.13-3.3.0.jar,/opt/spark/jars/delta-storage-3.3.0.jar,/opt/spark/jars/gcs-connector-hadoop3-latest.jar \
+        /opt/airflow/jobs/transform_to_gold/transform_store_to_gold.py
+        """
+    )
+
+    load_to_bronze >> transform_to_silver >> transform_to_gold
