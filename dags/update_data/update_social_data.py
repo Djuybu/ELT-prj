@@ -29,3 +29,5 @@ with DAG(
         /opt/airflow/jobs/upload_to_bronze/upload_raw_socialmedia_csv.py
         """
     )
+        
+load_to_bronze
