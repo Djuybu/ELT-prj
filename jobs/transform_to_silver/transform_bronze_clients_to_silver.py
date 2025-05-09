@@ -24,6 +24,7 @@ silver_path = "gs://bigdata-team3-uet-zz/silver/clients"
 primary_key = "client_id"
 
 
+
 bronze_df = spark.read.format("delta").load(bronze_path) \
     .filter("ingestion_time >= current_timestamp() - INTERVAL 7 DAYS")
 

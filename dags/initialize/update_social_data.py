@@ -19,7 +19,7 @@ with DAG(
 ) as dag:
 
     # 1️⃣ Load raw CSV lên Bronze layer
-    load_to_bronze = BashOperator(
+    load_to_silver = BashOperator(
         task_id='load_csv_to_bronze',
         bash_command="""  
         /opt/spark/bin/spark-submit \
@@ -33,7 +33,7 @@ with DAG(
     )
 
     # 2️⃣ Transform từ Bronze sang Silver
-    transform_to_silver = BashOperator(
+    transform_to_gold = BashOperator(
         task_id='transform_bronze_to_silver',
         bash_command="""  
         pip install delta-spark==1.0.0 && \
@@ -48,4 +48,4 @@ with DAG(
     )
 
     # Xác định thứ tự thực hiện các task: load_to_bronze -> transform_to_silver
-    load_to_bronze >> transform_to_silver
+    load_to_silver >> transform_to_gold
