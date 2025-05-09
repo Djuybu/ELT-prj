@@ -16,9 +16,9 @@ spark = SparkSession.builder \
     .getOrCreate()
 
 # Đường dẫn đến thư mục chứa dữ liệu thô
-bronze_path = "bigdata-team3-uet-zz/bronze/social_media/facebook"
+bronze_path = "gs://bigdata-team3-uet-zz/bronze/social_media/facebook"
 # Đường dẫn đến thư mục chứa dữ liệu đã chuẩn hóa
-silver_path = "bigdata-team3-uet-zz/silver/social_media/"
+silver_path = "gs://bigdata-team3-uet-zz/silver/social_media/"
 
 facebook_df = spark.read.format("delta").load(bronze_path)
 
