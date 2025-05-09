@@ -171,7 +171,7 @@ tiktok_df = tiktok_df.withColumn("num_likes", when(~col("num_likes").cast(Intege
 tiktok_df.show(10, truncate=False)
 
 
-facebook_df.write.format("delta").save(bronze_path)
-insta_df.write.format("delta").save(bronze_path)
-tw_df.write.format("delta").save(bronze_path)
-tiktok_df.write.format("delta").save(bronze_path)
+facebook_df.write.format("delta").save(bronze_path + "/facebook")
+insta_df.write.format("delta").save(bronze_path + "/instagram")
+tw_df.write.format("delta").save(bronze_path + "/twitter")
+tiktok_df.write.format("delta").save(bronze_path + "/tiktok")
