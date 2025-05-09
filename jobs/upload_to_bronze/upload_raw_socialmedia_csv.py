@@ -27,7 +27,7 @@ spark = SparkSession.builder \
     .config("spark.hadoop.google.cloud.auth.service.account.enable", "false") \
     .getOrCreate()
 
-facebook_df = spark.read.csv("/app/airflow/docker/ELT-prj/files/social_media/facebook_datasets.csv", header=True, inferSchema=True)
+facebook_df = spark.read.csv("/opt/airflow/files/social_media/facebook_datasets.csv", header=True, inferSchema=True)
 
 InstaSchema = StructType([
     StructField("url", StringType(), True),
@@ -100,9 +100,9 @@ def choose_random_name():
 # Đăng ký UDF
 choose_name_udf = udf(choose_random_name, StringType())
 
-twitter_df = spark.read.csv("/app/airflow/docker/ELT-prj/files/social_media/Twitter-datasets.csv", header=True, schema=twitterSchema)
-instagram_df = spark.read.csv("/app/airflow/docker/ELT-prj/files/social_media/Instagram-datasets.csv", header=True, schema=InstaSchema)
-tiktok_df = spark.read.csv("/app/airflow/docker/ELT-prj/files/social_media/TikTok-datasets.csv", header=True, inferSchema=TikTokSchema)
+twitter_df = spark.read.csv("/opt/airflow/files/social_media/Twitter-datasets.csv", header=True, schema=twitterSchema)
+instagram_df = spark.read.csv("/opt/airflow/ELT-prj/files/social_media/Instagram-datasets.csv", header=True, schema=InstaSchema)
+tiktok_df = spark.read.csv("/opt/airflow//ELT-prj/files/social_media/TikTok-datasets.csv", header=True, inferSchema=TikTokSchema)
 
 insta_df = instagram_df.withColumn("likes_number", when(col("likes_number").cast(IntegerType()).isNull(), randint(0, 100)).otherwise(col("likes_number"))) \
     .withColumn("replies_number", when(col("replies_number").cast(IntegerType()).isNull(), randint(0, 100)).otherwise(col("replies_number"))) \
