@@ -12,7 +12,7 @@ dag = DAG(
 )
 
 # Định nghĩa lệnh bash để chạy spark-submit
-spark_submit_command = """
+facebook_transform_command = """
  /opt/spark/bin/spark-submit \
   --master local[*] \
   --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension \
@@ -21,10 +21,27 @@ spark_submit_command = """
   /opt/airflow/jobs/transform_to_silver/social_media/transform_facebook_to_silver.py
 """
 
+instagram_transform_command = """
+ /opt/spark/bin/spark-submit \
+  --master local[*] \
+  --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension \
+  --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog \
+  --jars /opt/spark/jars/delta-spark_2.13-3.3.0.jar,/opt/spark/jars/delta-storage-3.3.0.jar \
+  /opt/airflow/jobs/transform_to_silver/social_media/transform_instagram_to_silver.py
+"""
+
 # Sử dụng BashOperator để chạy lệnh spark-submit
-load_to_delta_task = BashOperator(
-    task_id='run_spark_submit',
-    bash_command=spark_submit_command,
+transform_facebook_task = BashOperator(
+    task_id='transform_facebook',
+    bash_command=facebook_transform_command,
     dag=dag
 )
+
+transform_instagram_task = BashOperator(
+    task_id='transform_instagram',
+    bash_command=instagram_transform_command,
+    dag=dag
+)
+
+
 
