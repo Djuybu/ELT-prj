@@ -27,7 +27,7 @@ spark = SparkSession.builder \
     .config("spark.hadoop.google.cloud.auth.service.account.enable", "false") \
     .getOrCreate()
 
-facebook_df = spark.read.csv("/app/airflow/docker/ELT-prj/files/social_media/Facebook-datasets.csv", header=True, inferSchema=True)
+facebook_df = spark.read.csv("/app/airflow/docker/ELT-prj/files/social_media/facebook_datasets.csv", header=True, inferSchema=True)
 
 InstaSchema = StructType([
     StructField("url", StringType(), True),
