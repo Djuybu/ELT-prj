@@ -101,8 +101,8 @@ def choose_random_name():
 choose_name_udf = udf(choose_random_name, StringType())
 
 twitter_df = spark.read.csv("/opt/airflow/files/social_media/Twitter-datasets.csv", header=True, schema=twitterSchema)
-instagram_df = spark.read.csv("/opt/airflow/ELT-prj/files/social_media/Instagram-datasets.csv", header=True, schema=InstaSchema)
-tiktok_df = spark.read.csv("/opt/airflow//ELT-prj/files/social_media/TikTok-datasets.csv", header=True, inferSchema=TikTokSchema)
+instagram_df = spark.read.csv("/opt/airflow/files/social_media/Instagram-datasets.csv", header=True, schema=InstaSchema)
+tiktok_df = spark.read.csv("/opt/airflow/files/social_media/TikTok-datasets.csv", header=True, inferSchema=TikTokSchema)
 
 insta_df = instagram_df.withColumn("likes_number", when(col("likes_number").cast(IntegerType()).isNull(), randint(0, 100)).otherwise(col("likes_number"))) \
     .withColumn("replies_number", when(col("replies_number").cast(IntegerType()).isNull(), randint(0, 100)).otherwise(col("replies_number"))) \
