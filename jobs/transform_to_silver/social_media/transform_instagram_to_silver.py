@@ -123,6 +123,9 @@ def create_post_content():
     comments = positive_comment_for_product + negative_comment_for_product
     return random.choice(comments)
 insta_df = spark.read.format("delta").load(bronze_path)
+
+name = ["Darth Vader", "Luke Skywalker", "Leia Organa", "Han Solo", "Yoda", "Obi-Wan Kenobi", "Chewbacca", "R2-D2", "C-3PO", "Padmé Amidala", "Anakin Skywalker", "Boba Fett", "Darth Maul", "Kylo Ren", "Rey", "Finn", "Poe Dameron", "BB-8", "Jyn Erso", "Cassian Andor", "Saw Gerrera", "Mon Mothma", "Ahsoka Tano", "Ezra Bridger", "Kanan Jarrus", "Sabine Wren"]
+
 def create_user_from_instagram_row(row):
     """
     Create new user from instagram row:
@@ -135,10 +138,22 @@ def create_user_from_instagram_row(row):
     - post: random number from 0 to 1000
     """
     user_id = random.randint(100000000000, 999999999999)  # Random 12-digit number
-    display_name = row.comment_user_url.split("/")[-2]
-    biography = row.comment_user_url
+    
+    # Kiểm tra hợp lệ
+    comment_url = row.comment_user_url
+    display_name = None
+    if comment_url and isinstance(comment_url, str):
+        parts = comment_url.strip().split("/")
+        # Kiểm tra đủ phần tử
+        if len(parts) >= 2:
+            display_name = parts[-2]
+        else:
+            display_name = random.choice(name)  # fallback
+    else:
+        display_name = random.choice(name)  # fallback nếu comment_url không hợp lệ
+    
+    biography = comment_url or ""
     is_verified = True
-    # Sinh ngẫu nhiên trong phạm vi từ 0 đến 1000
     following = random.randint(0, 1000)
     followed = random.randint(0, 1000)
     post = random.randint(0, 1000)
