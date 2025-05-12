@@ -28,6 +28,58 @@ with DAG(
         --jars /opt/spark/jars/delta-spark_2.13-3.3.0.jar,/opt/spark/jars/delta-storage-3.3.0.jar,/opt/spark/jars/gcs-connector-hadoop3-latest.jar \
         /opt/airflow/jobs/upload_to_bronze/upload_raw_socialmedia_csv.py
         """
+        )
+        transform_facebook_to_silver = BashOperator(
+        task_id='transform_facebook_to_silver',
+        bash_command="""
+        opt/spark/bin/spark-submit \
+        --master local[*] \
+        --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension \
+        --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog \
+        --conf spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem \
+        --jars /opt/spark/jars/delta-spark_2.13-3.3.0.jar,/opt/spark/jars/delta-storage-3.3.0.jar,/opt/spark/jars/gcs-connector-hadoop3-latest.jar \
+        /opt/airflow/jobs/transform_to_silver/social_media/transform_facebook_to_silver.py
+        """
+        )
+        transform_tiktok_to_silver = BashOperator(
+        task_id='transform_tiktok_to_silver',
+        bash_command="""
+        /opt/spark/bin/spark-submit \
+        --master local[*] \
+        --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension \
+        --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog \        
+        --conf spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem \
+        --jars /opt/spark/jars/delta-spark_2.13-3.3.0.jar,/opt/spark/jars/delta-storage-3.3.0.jar,/opt/spark/jars/gcs-connector-hadoop3-latest.jar \
+        /opt/airflow/jobs/transform_to_silver/social_media/transform_tiktok_to_silver.py
+        """
+        )
+        transform_instagram_to_silver = BashOperator(
+        task_id='transform_instagram_to_silver',
+        bash_command="""
+        /opt/spark/bin/spark-submit \
+        --master local[*] \
+        --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension \
+        --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog \
+        --conf spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem \
+        --jars /opt/spark/jars/delta-spark_2.13-3.3.0.jar,/opt/spark/jars/delta-storage-3.3.0.jar,/opt/spark/jars/gcs-connector-hadoop3-latest.jar \
+        /opt/airflow/jobs/transform_to_silver/social_media/transform_instagram_to_silver.py
+        """
+        )
+        transform_twitter_to_silver = BashOperator(
+        task_id='transform_twitter_to_silver',
+        bash_command="""
+        /opt/spark/bin/spark-submit \
+        --master local[*] \
+        --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension \
+        --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog \
+        --conf spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem \
+        --jars /opt/spark/jars/delta-spark_2.13-3.3.0.jar,/opt/spark/jars/delta-storage-3.3.0.jar,/opt/spark/jars/gcs-connector-hadoop3-latest.jar \
+        /opt/airflow/jobs/transform_to_silver/social_media/transform_twitter_to_silver.py
+        """
     )
-        
-load_to_bronze
+        load_to_bronze >> [
+            transform_facebook_to_silver,
+            transform_tiktok_to_silver,
+            transform_instagram_to_silver,
+            transform_twitter_to_silver
+        ]
