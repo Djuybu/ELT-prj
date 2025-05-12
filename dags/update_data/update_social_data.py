@@ -32,13 +32,13 @@ with DAG(
         transform_facebook_to_silver = BashOperator(
         task_id='transform_facebook_to_silver',
         bash_command="""
-        opt/spark/bin/spark-submit \
+        /opt/spark/bin/spark-submit \
         --master local[*] \
         --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension \
         --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog \
         --conf spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem \
         --jars /opt/spark/jars/delta-spark_2.13-3.3.0.jar,/opt/spark/jars/delta-storage-3.3.0.jar,/opt/spark/jars/gcs-connector-hadoop3-latest.jar \
-        /opt/airflow/jobs/transform_to_silver/social_media/transform_facebook_to_silver.py
+        /opt/***/jobs/transform_to_silver/social_media/transform_facebook_to_silver.py
         """
         )
         transform_tiktok_to_silver = BashOperator(
@@ -47,7 +47,7 @@ with DAG(
         /opt/spark/bin/spark-submit \
         --master local[*] \
         --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension \
-        --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog \        
+        --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog \
         --conf spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem \
         --jars /opt/spark/jars/delta-spark_2.13-3.3.0.jar,/opt/spark/jars/delta-storage-3.3.0.jar,/opt/spark/jars/gcs-connector-hadoop3-latest.jar \
         /opt/airflow/jobs/transform_to_silver/social_media/transform_tiktok_to_silver.py

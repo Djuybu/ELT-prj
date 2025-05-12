@@ -155,8 +155,9 @@ def create_user_from_facebook_row(row):
     following = random.randint(0, 1000)
     followed = random.randint(0, 1000)
     post = random.randint(0, 1000)
+    user_type = "Tiktok"
 
-    return (user_id, display_name, biography, is_verified, following, followed, post)
+    return (user_id, display_name, biography, is_verified, following, followed, post, user_type)
 
 user_face_rdd = facebook_df.rdd.map(lambda row: create_user_from_facebook_row(row))
 
