@@ -162,11 +162,11 @@ def create_user_from_tiktok_row(row):
 import random
 
 
-user_face_rdd = facebook_df.rdd.map(lambda row: create_user_from_tiktok_row(row))
+user_tiktok_rdd = facebook_df.rdd.map(lambda row: create_user_from_tiktok_row(row))
 
 # Chuyển sang DataFrame mới
-user_face_df = spark.createDataFrame(user_face_rdd, userSchema)
-
+user_tiktok_df = spark.createDataFrame(user_tiktok_rdd, userSchema)
+user_ids = user_tiktok_df.select("user_id").rdd.flatMap(lambda x: x).collect()
 def create_post_from_tiktok_row(row, user_ids):
     """
     Create a post tuple from a TikTok comment row.
@@ -185,10 +185,10 @@ def create_post_from_tiktok_row(row, user_ids):
 
     return (post_id, user_id, post_content, post_date, post_url, post_type)
 
-post_face_rdd = facebook_df.rdd.map(lambda row: create_post_from_tiktok_row(row))
+post_tiktok_rdd = facebook_df.rdd.map(lambda row: create_post_from_tiktok_row(row, user_ids))
 
 # Chuyển sang DataFrame mới
-post_face_df = spark.createDataFrame(post_face_rdd, PostSchema)
+post_tiktok_df = spark.createDataFrame(post_tiktok_rdd, PostSchema)
 
 def generate_user_mentions(instance_nums):
     """
@@ -197,8 +197,8 @@ def generate_user_mentions(instance_nums):
     For instance_nums, randomly select post_id and mentioned_user_id
     """
     # Lấy user_ids và post_ids 1 lần duy nhất
-    user_ids = user_face_df.select('user_id').rdd.flatMap(lambda x: x).collect()
-    post_ids = post_face_df.select('post_id').rdd.flatMap(lambda x: x).collect()
+    user_ids = user_tiktok_df.select('user_id').rdd.flatMap(lambda x: x).collect()
+    post_ids = post_tiktok_df.select('post_id').rdd.flatMap(lambda x: x).collect()
 
     mentions_list = []
     for _ in range(instance_nums):    
@@ -214,6 +214,6 @@ user_mentions = generate_user_mentions(100)
 user_mentions_df = spark.createDataFrame(user_mentions, ["post_id", "mentioned_user_id"])
 
 
-user_face_df.write.format("delta").mode("overwrite").save(os.path.join(silver_path, "user"))
-post_face_df.write.format("delta").mode("overwrite").save(os.path.join(silver_path, "post"))
+user_tiktok_df.write.format("delta").mode("overwrite").save(os.path.join(silver_path, "user"))
+post_tiktok_df.write.format("delta").mode("overwrite").save(os.path.join(silver_path, "post"))
 user_mentions_df.write.format("delta").mode("overwrite").save(os.path.join(silver_path, "user_mentions"))
