@@ -19,7 +19,7 @@ spark = SparkSession.builder \
 # 📁 2. Đường dẫn dữ liệu
 # -------------------------------------
 bronze_path = "gs://bigdata-team3-uet-zz/bronze/social_media/facebook"
-silver_path = "gs://bigdata-team3-uet-zz/silver/social_media/facebook"
+silver_path = "gs://bigdata-team3-uet-zz/silver/social_media/"
 
 # -------------------------------------
 # 📥 3. Đọc dữ liệu từ bronze
@@ -124,8 +124,8 @@ mentions_df = generate_user_mentions(100, user_df, post_df)
 # -------------------------------------
 # 💾 10. Ghi dữ liệu ra tầng silver
 # -------------------------------------
-user_df.write.format("delta").mode("overwrite").save(os.path.join(silver_path, "user"))
-post_df.write.format("delta").mode("overwrite").save(os.path.join(silver_path, "post"))
-mentions_df.write.format("delta").mode("overwrite").save(os.path.join(silver_path, "user_mentions"))
+user_df.write.format("delta").mode("append").save(os.path.join(silver_path, "user"))
+post_df.write.format("delta").mode("append").save(os.path.join(silver_path, "post"))
+mentions_df.write.format("delta").mode("append").save(os.path.join(silver_path, "user_mentions"))
 
 print("✅ Dữ liệu Facebook đã được chuẩn hóa và lưu vào silver thành công.")
