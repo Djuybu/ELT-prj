@@ -31,6 +31,7 @@ userSchema = StructType([
     StructField("is_verified", BooleanType(), True),
     StructField("following", IntegerType(), True),
     StructField("followed", IntegerType(), True),
+    StructField("post", IntegerType(), True),
     StructField("user_type", IntegerType(), True),
 ])
 
