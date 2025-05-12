@@ -1,3 +1,4 @@
+import re
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, lit, split, trim, lower, current_timestamp, monotonically_increasing_id, min as spark_min, array, explode
 from pyspark.sql.types import StringType, LongType, StructType, StructField
@@ -43,6 +44,9 @@ PostSchema = StructType([
     StructField("post_url", StringType(), True),
     StructField("post_type", StringType(), True),
 ])
+
+
+name = ["Darth Vader", "Luke Skywalker", "Leia Organa", "Han Solo", "Yoda", "Obi-Wan Kenobi", "Chewbacca", "R2-D2", "C-3PO", "Padmé Amidala", "Anakin Skywalker", "Boba Fett", "Darth Maul", "Kylo Ren", "Rey", "Finn", "Poe Dameron", "BB-8", "Jyn Erso", "Cassian Andor", "Saw Gerrera", "Mon Mothma", "Ahsoka Tano", "Ezra Bridger", "Kanan Jarrus", "Sabine Wren"]
 
 positive_comment_for_product = [
     "This is good!",
@@ -125,47 +129,63 @@ def create_post_content():
     return random.choice(comments)
 
 from datetime import datetime, timedelta
-def create_post_from_facebook_row(row):
+def create_user_from_tiktok_row(row):
     """
-    create post from face_df row, with primary key being post_id row (make sure they are unique):
-    - post_id: from post_id
-    - user_id: from user_id
-    - post_content: use create_post_content
-    - post_date: current_datetime - 1
-    - post_url: post_url
+    Create a user tuple from a TikTok comment row.
+    - user_id: random 12-digit number
+    - display_name: extracted from commenter_url (e.g., "https://www.tiktok.com/@username")
+    - biography: commenter_url
+    - is_verified: True
+    - following, followed, post: random number from 0 to 1000
     """
-    post_id = row.post_id
-    user_id = row.user_id
-    post_content = create_post_content()
-    post_date = datetime.now() - timedelta(days=1)
-    post_url = row.post_url
-    post_type = "Facebook"
+    user_id = random.randint(100000000000, 999999999999)
 
-    return (post_id, user_id, post_content, post_date, post_url, post_type)
+    # Extract username from commenter_url
+    display_name = None
+    if row.commenter_url:
+        match = re.search(r'tiktok\.com/@([^/?]+)', row.commenter_url)
+        if match:
+            display_name = match.group(1)
+        else:
+            display_name = random.choice(name)  # Fallback to random name if extraction fails
+
+    biography = row.commenter_url or ""
+    is_verified = True
+    following = random.randint(0, 1000)
+    followed = random.randint(0, 1000)
+    post = random.randint(0, 1000)
+    user_type = "TikTok"
+
+    return (user_id, display_name, biography, is_verified, following, followed, post, user_type)
 
 
 import random
 
-def create_user_from_facebook_row(row):
-    user_id = row.user_id
-    display_name = row.user_name
-    biography = row.user_url
-    is_verified = True
-    # Sinh ngẫu nhiên trong phạm vi từ 0 đến 1000
-    following = random.randint(0, 1000)
-    followed = random.randint(0, 1000)
-    post = random.randint(0, 1000)
-    user_type = "Tiktok"
 
-    return (user_id, display_name, biography, is_verified, following, followed, post, user_type)
-
-user_face_rdd = facebook_df.rdd.map(lambda row: create_user_from_facebook_row(row))
+user_face_rdd = facebook_df.rdd.map(lambda row: create_user_from_tiktok_row(row))
 
 # Chuyển sang DataFrame mới
 user_face_df = spark.createDataFrame(user_face_rdd, userSchema)
 
+def create_post_from_tiktok_row(row, user_ids):
+    """
+    Create a post tuple from a TikTok comment row.
+    - post_id: random 12-digit number
+    - user_id: randomly from user_ids (list)
+    - post_content: generated from create_post_content()
+    - post_date: current datetime - 1 day
+    - post_url: from row.post_url
+    """
+    post_id = random.randint(100000000000, 999999999999)  # Random 12-digit number
+    user_id = random.choice(user_ids)
+    post_content = create_post_content()
+    post_date = datetime.now() - timedelta(days=1)
+    post_url = row.post_url
+    post_type = "TikTok"
 
-post_face_rdd = facebook_df.rdd.map(lambda row: create_post_from_facebook_row(row))
+    return (post_id, user_id, post_content, post_date, post_url, post_type)
+
+post_face_rdd = facebook_df.rdd.map(lambda row: create_post_from_tiktok_row(row))
 
 # Chuyển sang DataFrame mới
 post_face_df = spark.createDataFrame(post_face_rdd, PostSchema)
