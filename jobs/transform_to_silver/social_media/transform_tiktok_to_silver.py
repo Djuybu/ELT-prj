@@ -16,7 +16,7 @@ spark = SparkSession.builder \
     .getOrCreate()
 
 # Đường dẫn đến thư mục chứa dữ liệu thô
-bronze_path = "gs://bigdata-team3-uet-zz/bronze/social_media/facebook"
+bronze_path = "gs://bigdata-team3-uet-zz/bronze/social_media/tiktok"
 # Đường dẫn đến thư mục chứa dữ liệu đã chuẩn hóa
 silver_path = "gs://bigdata-team3-uet-zz/silver/social_media/"
 
@@ -31,7 +31,8 @@ userSchema = StructType([
     StructField("is_verified", BooleanType(), True),
     StructField("following", IntegerType(), True),
     StructField("followed", IntegerType(), True),
-    StructField("user_type", IntegerType(), True),
+    StructField("post", IntegerType(), True),
+    StructField("user_type", StringType(), True),
 ])
 
 PostSchema = StructType([
@@ -154,9 +155,8 @@ def create_user_from_facebook_row(row):
     following = random.randint(0, 1000)
     followed = random.randint(0, 1000)
     post = random.randint(0, 1000)
-    type = "Facebook"
 
-    return (user_id, display_name, biography, is_verified, following, followed, post, type)
+    return (user_id, display_name, biography, is_verified, following, followed, post)
 
 user_face_rdd = facebook_df.rdd.map(lambda row: create_user_from_facebook_row(row))
 

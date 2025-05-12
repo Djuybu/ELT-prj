@@ -1,4 +1,4 @@
-from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession, Row
 from pyspark.sql.functions import col, lit, split, trim, lower, current_timestamp, monotonically_increasing_id, min as spark_min, array, explode
 from pyspark.sql.types import StringType, LongType, StructType, StructField
 from pyspark.sql.functions import udf
@@ -16,13 +16,13 @@ spark = SparkSession.builder \
     .getOrCreate()
 
 # Đường dẫn đến thư mục chứa dữ liệu thô
-bronze_path = "gs://bigdata-team3-uet-zz/bronze/social_media/instagram"
+bronze_path = "gs://bigdata-team3-uet-zz/bronze/social_media/twitter"
 # Đường dẫn đến thư mục chứa dữ liệu đã chuẩn hóa
 silver_path = "gs://bigdata-team3-uet-zz/silver/social_media/"
 
-facebook_df = spark.read.format("delta").load(bronze_path, header=True, inferSchema=True)
+twitter_df = spark.read.format("delta").load(bronze_path)
 
-from pyspark.sql.types import StructType, StructField, StringType, BooleanType, IntegerType, TimestampType, ArrayType
+from pyspark.sql.types import StructType, StructField, StringType, BooleanType, IntegerType, TimestampType
 
 userSchema = StructType([
     StructField("user_id", StringType(), True),
@@ -32,6 +32,7 @@ userSchema = StructType([
     StructField("following", IntegerType(), True),
     StructField("followed", IntegerType(), True),
     StructField("post", IntegerType(), True),
+    StructField("user_type", StringType(), True),
 ])
 
 PostSchema = StructType([
@@ -122,85 +123,110 @@ def create_post_content():
     """
     comments = positive_comment_for_product + negative_comment_for_product
     return random.choice(comments)
-insta_df = spark.read.format("delta").load(bronze_path)
-def create_user_from_instagram_row(row):
+
+from datetime import datetime, timedelta
+def create_user_from_twitter_row(user_posted):
     """
-    Create new user from instagram row:
+    Create a new user from unique user_posted value:
     - user_id: random 12-digit number
-    - display_name: extract from comment_user_url: "https://www.instagram.com/username/"
-    - biography: comment_user_url
+    - display_name: user_posted
+    - biography: http://x.com/user_posted
     - is_verified: True
     - following: random number from 0 to 1000
     - followed: random number from 0 to 1000
     - post: random number from 0 to 1000
     """
-    user_id = random.randint(100000000000, 999999999999)  # Random 12-digit number
-    display_name = row.comment_user_url.split("/")[-2]
-    biography = row.comment_user_url
+    user_id = random.randint(100000000000, 999999999999)
+    display_name = user_posted
+    biography = f"http://x.com/{user_posted}"
     is_verified = True
-    # Sinh ngẫu nhiên trong phạm vi từ 0 đến 1000
     following = random.randint(0, 1000)
     followed = random.randint(0, 1000)
     post = random.randint(0, 1000)
-    return (user_id, display_name, biography, is_verified, following, followed, post)
-
-from datetime import datetime, timedelta
-from pyspark.sql.types import StructType, StructField, StringType, TimestampType
-
-
-user_insta_rdd = insta_df.rdd.map(lambda row: create_user_from_instagram_row(row))
-# Chuyển sang DataFrame mới
-user_insta_df = spark.createDataFrame(user_insta_rdd, userSchema)
-
-
-# 1. Chuẩn bị dictionary map bio -> user_id
-biography_to_user_id = dict(
-    user_insta_df.select('biography', 'user_id')
-                .rdd
-                .map(lambda row: (row['biography'], row['user_id']))
-                .collect()
-)
-
-current_time = datetime.now()
-
-def create_post_from_instagram_row(row, current_time, bio_userid_dict):
-    post_id = row.post_id
-    user_id = bio_userid_dict.get(row.comment_user_url, None)
-    post_content = create_post_content()
-    post_date = current_time - timedelta(days=1)
-    post_url = row.post_url
-    post_type = "Instagram"
-    return (post_id, user_id, post_content, post_date, post_url, post_type)
-
-
-post_insta_rdd = insta_df.rdd.map(
-    lambda row: create_post_from_instagram_row(row, current_time, biography_to_user_id)
-)
-# Chuyển sang DataFrame mới
-post_insta_df = spark.createDataFrame(post_insta_rdd, PostSchema)
+    type = "Twitter"
+    return Row(user_id=user_id, display_name=display_name, biography=biography,
+               is_verified=is_verified, following=following, followed=followed, post=post, user_type=type)
 
 
 import random
 
-def create_hashtag_from_instagram_row(row):
+unique_users_rdd = twitter_df.select("user_posted").distinct().rdd.map(lambda row: create_user_from_twitter_row(row.user_posted))
+
+user_df = spark.createDataFrame(unique_users_rdd, userSchema)
+
+user_id_dict = dict(
+    user_df.select('user_id', 'display_name')
+        .rdd
+        .map(lambda row: (row['user_id'], row['display_name']))
+        .collect()
+)
+print(user_id_dict)
+
+import re
+import random
+from datetime import datetime, timedelta
+
+def create_post_from_twitter_row(row):
     """
-    Tạo hastag từ dòng Instagram, mỗi hashtag duy nhất, loại bỏ hashtag mẫu 'null_hehe"_hehe'.
-    - hastag_id: số ngẫu nhiên 12 chữ số
-    - hashtag_text: từ hashtag_comment, tách bởi "," sau khi đã loại bỏ dấu "[" và "]"
+    Create a new post from a Twitter row:
+    - post_id, user_id, post_content, post_date, post_url, post_type
+    """
+    post_id = row.id
+    post_url = row.url
+    
+    # Trích xuất user_id từ URL dạng https://x.com/{user_id}/status/{post_id}
+    extracted_user_id = None
+    if post_url and isinstance(post_url, str):
+        match = re.search(r'https://x\.com/([^/]+)/status/', post_url)
+        if match:
+            extracted_user_id = match.group(1)
+
+    # Tìm user_id từ dict dựa theo extracted_user_id
+    if extracted_user_id:
+        user_id = next(
+            (uid for uid, name in user_id_dict.items() if name and name.lower() == extracted_user_id.lower()), 
+            None
+        )
+    else:
+        user_id = None
+
+    # Nếu không tìm thấy user_id, chọn ngẫu nhiên
+    if user_id is None:
+        user_id = random.choice(list(user_id_dict.keys()))
+
+    # Tạo nội dung bài đăng
+    post_content = create_post_content()
+
+    # Thời gian bài đăng: hiện tại - 1 ngày
+    post_date = datetime.now() - timedelta(days=1)
+
+    # Loại bài đăng
+    post_type = "Twitter"
+
+    return (post_id, user_id, post_content, post_date, post_url, post_type)
+
+# tạo từ các row của twitter_df
+post_tw_rdd = twitter_df.rdd.map(lambda row: create_post_from_twitter_row(row))
+
+# Chuyển sang DataFrame mới
+post_tw_df = spark.createDataFrame(post_tw_rdd, PostSchema)
+
+def create_hashtag_from_twitter_row(row):
+    """
+    Create a new hashtag from Twitter row:
+    - hastag_id: random 12-digit number
+    - hashtag_text: from hashtags, split by ","
     """
     # Kiểm tra null hoặc empty
-    if row.hashtag_comment is None:
+    if row.hashtags is None:
         return []
 
-    hashtag_comment = row.hashtag_comment.strip()
-    if hashtag_comment.lower() == 'null' or hashtag_comment == '' or hashtag_comment == 'unknown' or hashtag_comment == ' ':
+    hashtags = row.hashtags.strip()
+    if hashtags.lower() == 'null' or hashtags == '' or hashtags == 'unknown' or hashtags == ' ':
         return []
-
-    # Loại bỏ dấu "[" và "]"
-    hashtag_comment = hashtag_comment[1:-1]
 
     # Tách thành list các hashtag
-    hashtag_text = [h.strip().strip('"') for h in hashtag_comment.split(",")]
+    hashtag_text = [h.strip().strip('"') for h in hashtags.split(",")]
 
     # Loại bỏ các hashtag có giá trị 'null_hehe"_hehe'
     hashtag_text = [h for h in hashtag_text if h != 'null_hehe"_hehe']
@@ -211,76 +237,36 @@ def create_hashtag_from_instagram_row(row):
     hastag_id = random.randint(100000000000, 999999999999)
 
     # Trả về danh sách các cặp (hastag_id, hashtag), mỗi hashtag duy nhất
-    return [(hastag_id, h) for h in unique_hashtags]
+    return [(hastag_id, h) for h in unique_hashtags]    
 
-hashtag_insta_rdd = insta_df.rdd.flatMap(lambda row: create_hashtag_from_instagram_row(row))
+hashtag_tw_rdd = twitter_df.rdd.flatMap(lambda row: create_hashtag_from_twitter_row(row))
 # Chuyển sang DataFrame mới
-hashtag_insta_df = spark.createDataFrame(hashtag_insta_rdd, ["hastag_id", "hashtag_text"])
+hashtag_tw_df = spark.createDataFrame(hashtag_tw_rdd, ["hastag_id", "hashtag_text"])
+# Hiển thị kết quả
+hashtag_tw_df.show(truncate=False)
 
-def parse_hashtags(hashtag_str):
-    if hashtag_str is None:
-        return []
-
-    text = hashtag_str.strip()
-    # Bỏ dấu ngoặc `[ ]` nếu có
-    text = text.strip('[]')
-
-    # Chọn separator phù hợp — nếu nhiều dòng có thể
-    # Ví dụ kiểm tra xem có ";" hay "," để tách
-    separator = ','
-    if ';' in text:
-        separator = ';'
-
-    parts = text.split(separator)
-    result = []
-
-    for part in parts:
-        part = part.strip().strip('"')
-        if ':' in part:
-            key, value = part.split(':', 1)
-            key = key.strip()
-            value = value.strip()
-            # bỏ qua null, rỗng
-            if key and value and value.lower() != 'null' and value != 'null_hehe"_hehe':
-                result.append((key, value))
-    return result
-
-# Áp dụng cho từng row trong DataFrame hoặc duyệt thủ công
-hashtags_list = []
-for row in insta_df.select('post_id', 'hashtag_comment') \
-        .filter((col('hashtag_comment').isNotNull()) & (col('hashtag_comment') != 'unknown')) \
-        .distinct().collect():
-    post_id = row['post_id']
-    hashtags_str = row['hashtag_comment']
-    pairs = parse_hashtags(hashtags_str)
-    # Giờ có list các cặp `(a,b)` rồi
-    # Có thể muốn lưu vào dict, hoặc chuyển về DataFrame
-    hashtags_list.extend([{'post_id': post_id, 'key': k, 'value': v} for k, v in pairs])
-
-parse_hashtags_udf = spark.udf.register("parse_hashtags", parse_hashtags, ArrayType(StructType([
-    StructField("key", StringType(), True),
-    StructField("value", StringType(), True)
-])))
-#Conver thành dict
-hashtag_post_dict = dict(
-    hashtag_insta_df.select('hastag_id', 'hashtag_text')
-        .rdd
-        .map(lambda row: (row['hastag_id'], row['hashtag_text']))
-        .filter(lambda x: x[1] is not None and x[1].strip().lower() != 'null' and x[1] != 'unknown')  # Lọc bỏ giá trị không hợp lệ
-        .collect()
-)
-
-
-# Tương tự cho hashtag_id_dict
 hashtag_id_dict = dict(
-    hashtag_insta_df.select('hastag_id', 'hashtag_text')
+    hashtag_tw_df.select('hastag_id', 'hashtag_text')
         .rdd
         .map(lambda row: (row['hastag_id'], row['hashtag_text']))
         .filter(lambda x: x[1] is not None and x[1].strip().lower() != 'null' and x[1] != 'unknown')  # Lọc bỏ giá trị không hợp lệ
         .collect()
 )
 
-def create_post_hashtag_from_instagram_row(hashtag_post_dict, hashtag_id_dict):
+post_hashtag_dict = dict(
+    hashtag_tw_df.select('hastag_id', 'hashtag_text')
+        .rdd
+        .map(lambda row: (row['hastag_id'], row['hashtag_text']))
+        .filter(lambda x: x[1] is not None and x[1].strip().lower() != 'null' and x[1] != 'unknown')  # Lọc bỏ giá trị không hợp lệ
+        .collect()
+)
+
+def create_post_hashtag():
+    """
+    From hashtag_id_dict and post_hashtag_dict, create a new post_hashtag row:
+    - post_id: from post_id
+    - hastag_id: from hastag_id
+    """
     result = []
 
     # Đảo ngược hashtag_id_dict: group các hashtag_id theo chuỗi nội dung
@@ -290,18 +276,16 @@ def create_post_hashtag_from_instagram_row(hashtag_post_dict, hashtag_id_dict):
             value_to_hashtag_ids.setdefault(value, []).append(hashtag_id)
 
     # Duyệt các post_id, nếu chuỗi không rỗng và tồn tại trong hashtag_id_dict, tạo cặp
-    for post_id, value in hashtag_post_dict.items():
+    for post_id, value in post_hashtag_dict.items():
         if value and value in value_to_hashtag_ids:
             for hashtag_id in value_to_hashtag_ids[value]:
                 result.append((post_id, hashtag_id))
 
     return result
 
-# Tạo DataFrame từ danh sách các cặp (post_id, hashtag_id)
-post_hashtag_list = create_post_hashtag_from_instagram_row(hashtag_post_dict, hashtag_id_dict)
-post_hashtag_df = spark.createDataFrame(post_hashtag_list, ["post_id", "hashtag_id"])
-
-import random
+# Tạo DataFrame từ danh sách các cặp (post_id, hastag_id)
+post_hashtag_list = create_post_hashtag()
+post_hashtag_df = spark.createDataFrame(post_hashtag_list, ["post_id", "hastag_id"])
 
 def generate_user_mentions(instance_nums):
     """
@@ -310,8 +294,8 @@ def generate_user_mentions(instance_nums):
     For instance_nums, randomly select post_id and mentioned_user_id
     """
     # Lấy user_ids và post_ids 1 lần duy nhất
-    user_ids = user_insta_df.select('user_id').rdd.flatMap(lambda x: x).collect()
-    post_ids = post_insta_df.select('post_id').rdd.flatMap(lambda x: x).collect()
+    user_ids = user_df.select('user_id').rdd.flatMap(lambda x: x).collect()
+    post_ids = post_tw_df.select('post_id').rdd.flatMap(lambda x: x).collect()
 
     mentions_list = []
     for _ in range(instance_nums):    
@@ -326,9 +310,9 @@ user_mentions = generate_user_mentions(100)
 # Convert to DataFrame
 user_mentions_df = spark.createDataFrame(user_mentions, ["post_id", "mentioned_user_id"])
 
-user_insta_df.write.format("delta").mode("append").save(silver_path + "user")
-post_insta_df.write.format("delta").mode("append").save(silver_path + "post")
-hashtag_insta_df.write.format("delta").mode("append").save(silver_path + "hashtag")
-post_hashtag_df.write.format("delta").mode("append").save(silver_path + "post_hashtag")
-user_mentions_df.write.format("delta").mode("append").save(silver_path + "user_mentions")
-
+# Lưu DataFrame vào Delta Lake
+user_df.write.format("delta").mode("append").save(os.path.join(silver_path, "user"))
+post_tw_df.write.format("delta").mode("append").save(os.path.join(silver_path, "post"))
+hashtag_tw_df.write.format("delta").mode("append").save(os.path.join(silver_path, "hashtag"))
+post_hashtag_df.write.format("delta").mode("append").save(os.path.join(silver_path, "post_hashtag"))
+user_mentions_df.write.format("delta").mode("append").save(os.path.join(silver_path, "user_mentions"))
