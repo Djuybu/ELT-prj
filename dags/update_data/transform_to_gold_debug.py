@@ -10,7 +10,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id='social_elt_pipeline',
+    dag_id='transform_social_media_to_gold',
     default_args=default_args,
     schedule_interval='@weekly',
     catchup=False,
