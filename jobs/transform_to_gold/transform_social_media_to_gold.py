@@ -1,6 +1,8 @@
 from pyspark.sql import SparkSession
 from delta.tables import DeltaTable
-
+from pyspark.sql.functions import row_number, to_date
+from pyspark.sql.window import Window
+from pyspark.sql.functions import col, lit
 
 
 spark = SparkSession.builder \
@@ -52,9 +54,7 @@ dim_hashtag_df = hashtag_df.select(
     lit(False).alias("is_shopping_related")
 )
 
-from pyspark.sql.functions import row_number, to_date
-from pyspark.sql.window import Window
-from pyspark.sql.functions import col, lit
+
 
 # Giả lập date_id
 date_df = post_df.select(
