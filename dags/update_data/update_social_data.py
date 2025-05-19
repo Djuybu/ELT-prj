@@ -76,10 +76,23 @@ with DAG(
         --jars /opt/spark/jars/delta-spark_2.13-3.3.0.jar,/opt/spark/jars/delta-storage-3.3.0.jar,/opt/spark/jars/gcs-connector-hadoop3-latest.jar \
         /opt/airflow/jobs/transform_to_silver/social_media/transform_twitter_to_silver.py
         """
-    )
+        )
+        
+        transform_all_to_gold = BashOperator(
+        task_id='transform_all_to_gold',
+        bash_command="""
+        /opt/spark/bin/spark-submit \
+        --master local[*] \
+        --conf spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension \
+        --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog \
+        --conf spark.hadoop.fs.gs.impl=com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem \
+        --jars /opt/spark/jars/delta-spark_2.13-3.3.0.jar,/opt/spark/jars/delta-storage-3.3.0.jar,/opt/spark/jars/gcs-connector-hadoop3-latest.jar \
+        /opt/airflow/jobs/transform_to_gold/transform_social_media_to_gold.py
+        """
+        )
         load_to_bronze >> [
             transform_facebook_to_silver,
             transform_tiktok_to_silver,
             transform_instagram_to_silver,
             transform_twitter_to_silver
-        ]
+        ] >> transform_all_to_gold
