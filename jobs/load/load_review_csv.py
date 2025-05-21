@@ -26,7 +26,7 @@ def load_store_csv(file_path: str) -> DataFrame:
 
     
 def load_to_delta(df: DataFrame) -> None:
-    df.write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/delta/reviews")  # Thay đổi IP cho phù hợp
+    df.write.format("delta").mode("overwrite").save("gs://bigdata-team3-uet-zz/bronze/reviews")  # Thay đổi IP cho phù hợp
 
 if __name__ == "__main__":
     # Example usage
