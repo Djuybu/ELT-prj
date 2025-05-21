@@ -120,26 +120,41 @@ negative_comments = ["Terrible quality!", "Không mua lại!", "Très mauvais pr
 
 # === Helper functions ===
 
+name_list = [
+    "Darth Vader", "Luke Skywalker", "Leia Organa", "Han Solo", "Yoda", "Obi-Wan Kenobi", "Chewbacca",
+    "R2-D2", "C-3PO", "Padmé Amidala", "Anakin Skywalker", "Boba Fett", "Darth Maul", "Kylo Ren", "Rey",
+    "Finn", "Poe Dameron", "BB-8", "Jyn Erso", "Cassian Andor", "Saw Gerrera", "Mon Mothma", "Ahsoka Tano",
+    "Ezra Bridger", "Kanan Jarrus", "Sabine Wren"
+]
+
 def create_user_from_twitter_row(user_posted):
     """
-    Create a new user from unique user_posted value:
-    - user_id: random 12-digit number
-    - display_name: user_posted
-    - biography: http://x.com/user_posted
-    - is_verified: True
-    - following: random number from 0 to 1000
-    - followed: random number from 0 to 1000
-    - post: random number from 0 to 1000
+    Create a new user from unique user_posted value.
+    If user_posted is None, assign a random name from name_list.
     """
     user_id = random.randint(100000000000, 999999999999)
-    display_name = user_posted
-    biography = f"http://x.com/{user_posted}"
+
+    # If user_posted is None, pick a name from the list
+    if user_posted is None or str(user_posted).strip() == "":
+        display_name = random.choice(name_list)
+    else:
+        display_name = user_posted
+
+    biography = f"http://x.com/{display_name.replace(' ', '').lower()}"
     is_verified = True
     following = random.randint(0, 1000)
     followed = random.randint(0, 1000)
     post = random.randint(0, 1000)
-    return Row(user_id=user_id, display_name=display_name, biography=biography,
-               is_verified=is_verified, following=following, followed=followed, post=post)
+
+    return Row(
+        user_id=user_id,
+        display_name=display_name,
+        biography=biography,
+        is_verified=is_verified,
+        following=following,
+        followed=followed,
+        post=post
+    )
 
 
 # === Generate users ===
